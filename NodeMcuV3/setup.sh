@@ -57,6 +57,16 @@ if [[ ! -w "${PORT}" ]]; then
 
 
 	die "'${PORT}' file is not writable by current user!" 3
+else
+	echo "Checking permissions... OK"
 fi
 
-#sudo usermod -a -G dialout <username>
+
+# Dodaj definicję mikrokontrolera esp8266
+# http://arduino.esp8266.com/stable/package_esp8266com_index.json
+# * PReferences -> Additional Platforms URL
+# * Narzędzia -> Płytka -> Menadżer płytek -> esp8266 -> install
+# * Narzędzia -> Płytka -> NodeMCU 1.0 (ESP-12E Module)
+# * Narzędzia -> Port -> $PORT
+
+# preferencje Arduino IDE są zapisane tutaj: ~/.arduino15
