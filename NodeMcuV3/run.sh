@@ -1,14 +1,21 @@
 #/usr/bin/env bash
 
-source "lib/common.sh"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+CONFIG_DIST_FILE="${DIR}/config/config.dist.sh"
+
+source "${DIR}/config/config.sh"
+source "${CONFIG_DIST_FILE}"
+source "${DIR}/lib/common.sh"
 
 COMMANDS=(
 	"snapshot"
 )
 
 declare -A COMMAND_HELP
-
 COMMAND_HELP["snapshot"]="create snapshot of files required to download"
+
+declare -A COMMAND_FILES
+COMMAND_FILES["snapshot"]="scripts/create_snapshot_arduino_ide_config.sh"
 
 usage() {
 	echo "usage:"
@@ -19,11 +26,42 @@ usage() {
 	die "$1" "$2"
 }
 
-while true; do
+required_variables() {
+	while true; do
+		local var_name="$1"
+		shift
+		[[ -z "${var_name}" ]] && return
+		get_var "${var_name}"
+		val="${RETURN_VALUE}"
+		[[ -z "${val}" ]] && {
+			if containsElement "${var_name}" "${DIST_VARIABLES[@]}"; then
+				[[ -e "${CONFIG_DIST_FILE}" ]] || {
+					cp "${DIR}/config/config.dist.sh.template" "${CONFIG_DIST_FILE}"
+				}
+				die "You have to provide variable '${var_name}' in file ${CONFIG_DIST_FILE}" "RUN/DIST_VAR_MISSING"
+			fi
+			die "required variable is missing: ${var_name}" "RUN/VAR_MISSING"
+		}
+
+	done
+}
+
+get_var() {
 	arg="$1"
-	shift
-	[[ -z "$arg" ]] && usage "no command specified" "RUN/NO_COMMAND"
-done
+	[[ -z "$var_name" ]] && die "Specify variable name!" "RUN/NO_ARG"
+	val="${!arg}"
+	RETURN_VALUE="${val}"
+}
+
+COMMAND="$1"
+shift
+[[ -z "$COMMAND" ]] && usage "no command specified" "RUN/NO_COMMAND"
+
+source "${DIR}/${COMMAND_FILES[${COMMAND}]}"
+
+
+
+
 
 
 # while true; do

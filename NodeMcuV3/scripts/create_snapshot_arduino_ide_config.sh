@@ -2,6 +2,8 @@
 # DO NOT CALL THIS FILE DIRECTLY!
 # call run.sh in repository root instead!
 
+required_variables "ARDUINO_CMD" "PACKAGE" "ARCH" "VERSION"
+
 
 
 ${ARDUINO_CMD} --install-boards ${PACKAGE}:${ARCH}:${VERSION} --pref boardsmanager.additional.urls=http://arduino.esp8266.com/stable/package_esp8266com_index.json

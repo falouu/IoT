@@ -3,7 +3,6 @@
 
 
 CONFIG_DIR="${HOME}/.arduino15"
-ARDUINO_CMD="/opt/arduino-1.8.5/arduino"
 
 PACKAGE="esp8266"
 ARCH="esp8266"
@@ -15,3 +14,5 @@ SNAPSHOT_DIRS=(
 	"packages/esp8266/tools/mkspiffs/0.2.0/"
 	"packages/esp8266/tools/xtensa-lx106-elf-gcc/1.20.0-26-gb404fb9-2/"
 )
+
+DIST_VARIABLES=( "ARDUINO_CMD" )
