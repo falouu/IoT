@@ -1,4 +1,9 @@
 #/usr/bin/env bash
+# DO NOT CALL THIS FILE DIRECTLY!
+# call run.sh in repository root instead !
+
+# Tested on Arduino 1.8.5
+
 
 # ------CONFIG--------
 PORT=/dev/ttyUSB0

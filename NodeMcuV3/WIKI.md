@@ -34,6 +34,10 @@ Sources for API are defined in: https://github.com/esp8266/Arduino/blob/master/c
 For example signature of function `digitalWrite` is here: https://github.com/esp8266/Arduino/blob/master/cores/esp8266/core_esp8266_wiring_digital.c
 
 
+## Arduino
+
+* preferences and packages localization: `~/.arduino15`
+
 ## NodeMcu V3 with Arduino IDE
 
 ### Config (based on my unit)
@@ -42,6 +46,14 @@ For example signature of function `digitalWrite` is here: https://github.com/esp
 * lwIP Variant: v2 Lower Memory (TODO: verify)
 * CPU Frequency: 80 MHz
 * Upload Speed: 115200
+
+### Board
+
+"name": "esp8266"
+"architecture": "esp8266"
+"version": "2.4.1"
+board: "NodeMCU 1.0 (ESP-12E Module)"
+
 
 ### Tutorials
 
