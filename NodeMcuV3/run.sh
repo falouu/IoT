@@ -1,6 +1,7 @@
 #/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ROOT_DIR="${DIR}"
 CONFIG_DIST_FILE="${DIR}/config/config.dist.sh"
 
 source "${DIR}/config/config.sh"
