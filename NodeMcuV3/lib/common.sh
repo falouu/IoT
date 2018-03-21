@@ -22,7 +22,11 @@ containsElement () {
   for e; do [[ "$e" == "$match" ]] && return 0; done
   return 1
 }
+function join_by { local IFS="$1"; shift; echo "$*"; }
 
+
+
+################### <ERROR CODES> #######################################
 declare -A ERROR_CODES
 
 ERROR_CODES["RUN/NO_COMMAND"]=1
@@ -30,3 +34,4 @@ ERROR_CODES["RUN/NO_ARG"]=2
 ERROR_CODES["RUN/VAR_MISSING"]=3
 ERROR_CODES["RUN/DIST_VAR_MISSING"]=4
 ERROR_CODES["SCRIPTS/CREATE_SNAPSHOT_ARDUINO_IDE_CONFIG/MISSING_PACKAGE_DIR"]=5
+################### </ERROR CODES> ######################################

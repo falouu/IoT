@@ -10,13 +10,16 @@ source "${DIR}/lib/common.sh"
 
 COMMANDS=(
 	"snapshot"
+	"shortlist"
 )
 
 declare -A COMMAND_HELP
 COMMAND_HELP["snapshot"]="create snapshot of files required to download"
+COMMAND_HELP["shortlist"]="list all commands"
 
 declare -A COMMAND_FILES
 COMMAND_FILES["snapshot"]="scripts/create_snapshot_arduino_ide_config.sh"
+COMMAND_FILES["shortlist"]="scripts/shortlist.sh"
 
 usage() {
 	echo "usage:"
