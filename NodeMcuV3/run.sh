@@ -27,6 +27,9 @@ usage() {
 	for command in "${COMMANDS[@]}"; do
 		echo "    ${command} - ${COMMAND_HELP[${command}]}"
 	done
+	echo 
+	echo "  If you want autocompletion of these commands, run following command: 'source \"${ROOT_DIR}/autocomplete.sh\"'"
+	echo 
 	die "$1" "$2"
 }
 
@@ -59,7 +62,10 @@ get_var() {
 
 COMMAND="$1"
 shift
-[[ -z "$COMMAND" ]] && usage "no command specified" "RUN/NO_COMMAND"
+[[ -z "${COMMAND}" ]] && usage "no command specified" "RUN/NO_COMMAND"
+containsElement "${COMMAND}" "${COMMANDS[@]}" || {
+	usage "unknown command: ${COMMAND}" "RUN/UNKNOWN_COMMAND"
+}
 
 source "${DIR}/${COMMAND_FILES[${COMMAND}]}"
 
