@@ -1,4 +1,4 @@
-#/usr/bin/env bash
+#!/usr/bin/env bash
 # bash 4.2 required
 #
 # required system commands:
@@ -6,11 +6,12 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR="${DIR}"
-CONFIG_DIST_FILE="${DIR}/config/config.dist.sh"
+BASHDUINO_SRC_ROOT_DIR="${ROOT_DIR}/bashduino/src/main"
+CONFIG_DIST_FILE="${ROOT_DIR}/config/config.dist.sh"
 
 source "${DIR}/config/config.sh"
 source "${CONFIG_DIST_FILE}"
-source "${DIR}/lib/common.sh"
+source "${BASHDUINO_SRC_ROOT_DIR}/lib/common.sh"
 
 COMMANDS=(
 	"snapshot"
@@ -22,8 +23,8 @@ COMMAND_HELP["snapshot"]="create snapshot of files required to download"
 COMMAND_HELP["shortlist"]="list all commands"
 
 declare -A COMMAND_FILES
-COMMAND_FILES["snapshot"]="scripts/create_snapshot_arduino_ide_config.sh"
-COMMAND_FILES["shortlist"]="scripts/shortlist.sh"
+COMMAND_FILES["snapshot"]="create_snapshot_arduino_ide_config.sh"
+COMMAND_FILES["shortlist"]="shortlist.sh"
 
 usage() {
 	echo "usage:"
@@ -71,7 +72,7 @@ containsElement "${COMMAND}" "${COMMANDS[@]}" || {
 	usage "unknown command: ${COMMAND}" "RUN/UNKNOWN_COMMAND"
 }
 
-source "${DIR}/${COMMAND_FILES[${COMMAND}]}"
+source "${BASHDUINO_SRC_ROOT_DIR}/commands/${COMMAND_FILES[${COMMAND}]}"
 
 
 
