@@ -9,7 +9,7 @@ ARCH="esp8266"
 VERSION="2.4.1"
 
 SNAPSHOT_DIRS=(
-	"packages/esp8266/hardware/esp8266/2.4.1/tools/"
+	"packages/esp8266/hardware/esp8266/2.4.1/"
 	"packages/esp8266/tools/esptool/0.4.13/"
 	"packages/esp8266/tools/mkspiffs/0.2.0/"
 	"packages/esp8266/tools/xtensa-lx106-elf-gcc/1.20.0-26-gb404fb9-2/"

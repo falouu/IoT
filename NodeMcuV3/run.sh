@@ -1,4 +1,8 @@
 #/usr/bin/env bash
+# bash 4.2 required
+#
+# required system commands:
+#   tar
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR="${DIR}"

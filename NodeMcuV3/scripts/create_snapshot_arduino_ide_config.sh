@@ -17,6 +17,30 @@ for snapshot_dir in "${SNAPSHOT_DIRS[@]}"; do
 	}
 done
 
+archive_package() {
+	local package_dir target_dir
+	require "$1"
+	package_dir="$1"
+
+	[[ -d "${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}" ]] \
+	  || die "Arduino packages snapshot dir (${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}) doesn't exists!" \
+	         "SCRIPTS/CREATE_SNAPSHOT_ARDUINO_IDE_CONFIG/MISSING_SNAPSHOTS_DIR"
+
+	target_dir="${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}/${package_dir}"
+	mkdir -p "${target_dir}" || die
+
+	pushd "${CONFIG_DIR}"
+	tar --create --bzip2 --sparse --file "${target_dir}/archive.tar.bz2" "${package_dir}"
+	popd
+	success || die "archive creation failed" "SCRIPTS/CREATE_SNAPSHOT_ARDUINO_IDE_CONFIG/ARCHIVE_CREATE_FAILED"
+}
+
+for snapshot_dir in "${SNAPSHOT_DIRS[@]}"; do
+	log "Creating snapshot of dir '${snapshot_dir}'..."
+	archive_package "${snapshot_dir}"
+done
+
+log "All snapshots created in directory '${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}'"
 
 #255
 
