@@ -1,7 +1,11 @@
 #/usr/bin/env bash
 # DO NOT CALL THIS FILE!
 
-
+# path to arduino command on your system
 ARDUINO_CMD=
+
+# directory where all downloaded files will be cached
 ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR=
+
+# On linux often: /dev/ttyUSB0
 PORT=

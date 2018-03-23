@@ -13,7 +13,7 @@ CONFIG_DIST_FILE="${ROOT_DIR}/config/config.dist.sh"
 
 source "${DIR}/config/config.sh"
 source "${CONFIG_DIST_FILE}"
-source "${BASHDUINO_SRC_ROOT_DIR}/lib/common.sh"
+source "${BASHDUINO_SRC_ROOT_DIR}/core/common.sh"
 
 COMMANDS=(
 	"snapshot"

@@ -63,6 +63,37 @@ require() {
   [[ -z "${value}" ]] && die "${message}" "COMMON/MISSING_PARAM"
 }
 
+# Import functions from bashduino/src/lib directory
+#
+# params:
+#   $1  fully qualified identifier of function to be imported
+#   $2  fixed string: "as"
+#   $3  alias name to be created for that function
+#
+# returns: null
+import() {
+    require "$1"
+    require "$2"
+    require "$3"
+    [[ "$2" == "as" ]] || {
+        die "improper use of import(). Second argument must be 'as'" "COMMON/INVALID_PARAM"
+    }
+    local fq_name="$1"
+    local target_alias="$3"
+
+    local function_abs_path="${BASHDUINO_SRC_ROOT_DIR}/lib/${fq_name}.sh"
+
+    [[ -f "${function_abs_path}" ]] || {
+        die "Cannot import: file '${function_abs_path}' does not exist" "COMMON/IMPORT_LIB_NOT_EXISTS"
+    }
+    local function_body="$(<${function_abs_path})"
+    eval "
+        ${target_alias}() {
+           ${function_body}
+        }
+    "
+}
+
 
 ################### <ERROR CODES> #######################################
 declare -A ERROR_CODES
@@ -81,6 +112,8 @@ ERROR_CODES["IDE/PORT_NOT_EXISTS"]=11
 ERROR_CODES["IDE/PORT_NOT_DEVICE"]=12
 ERROR_CODES["IDE/UNKNOWN_ERROR"]=13
 ERROR_CODES["COMMON/UNKNOWN_ERROR_ID"]=14
+ERROR_CODES["COMMON/INVALID_PARAM"]=15
+ERROR_CODES["COMMON/IMPORT_LIB_NOT_EXISTS"]=15
 
 
 ################### </ERROR CODES> ######################################

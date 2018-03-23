@@ -42,7 +42,12 @@ else
 	log "Checking permissions... OK"
 fi
 
+create_snapshot_if_required() {
 
+}
+
+#create_snapshot_if_required()
+#update_config_dir_from_snapshot()
 
 
 
