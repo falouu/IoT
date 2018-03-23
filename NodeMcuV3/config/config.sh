@@ -1,4 +1,4 @@
-#/usr/bin/env bash
+#!/usr/bin/env bash
 # DO NOT CALL THIS FILE!
 
 
@@ -15,4 +15,4 @@ SNAPSHOT_DIRS=(
 	"packages/esp8266/tools/xtensa-lx106-elf-gcc/1.20.0-26-gb404fb9-2/"
 )
 
-DIST_VARIABLES=( "ARDUINO_CMD" "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR" )
+DIST_VARIABLES=( "ARDUINO_CMD" "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR" "PORT" )

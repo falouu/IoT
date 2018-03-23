@@ -1,4 +1,4 @@
-#/usr/bin/env bash
+#!/usr/bin/env bash
 # DO NOT CALL THIS FILE!
 
 log() {
@@ -14,13 +14,25 @@ log() {
     echo "${log_line}"
   fi
 }
+debug() { log "$@" "DEBUG"; }
 errcho(){  log "$@" "ERROR"; }
+# usage: containsElement "a string" "${array[@]}"
+containsElement() {
+  local e match="$1"
+  shift
+  for e; do [[ "$e" == "$match" ]] && return 0; done
+  return 1
+}
 die(){
   local message error_id
   message="$1"
   error_id="$2"
   [[ -z "${message}" ]] && message="Unknown error"
   [[ -z "${error_id}" ]] && error_id="COMMON/UNKNOWN_ERROR"
+  containsElement "${error_id}" "${!ERROR_CODES[@]}" || {
+    message="die(): Unknown error id: '${error_id}' (original error message: '${message}')"
+    error_id="COMMON/UNKNOWN_ERROR_ID"
+  }
   errcho "${message}"
   exit "${ERROR_CODES[${error_id}]}";
 }
@@ -36,13 +48,7 @@ yes_or_no() {
     done
 }
 
-# usage: containsElement "a string" "${array[@]}"
-containsElement() {
-  local e match="$1"
-  shift
-  for e; do [[ "$e" == "$match" ]] && return 0; done
-  return 1
-}
+
 function join_by { local IFS="$1"; shift; echo "$*"; }
 
 # returns: null
@@ -71,5 +77,10 @@ ERROR_CODES["COMMON/MISSING_PARAM"]=7
 ERROR_CODES["SCRIPTS/CREATE_SNAPSHOT_ARDUINO_IDE_CONFIG/MISSING_SNAPSHOTS_DIR"]=8
 ERROR_CODES["SCRIPTS/CREATE_SNAPSHOT_ARDUINO_IDE_CONFIG/ARCHIVE_CREATE_FAILED"]=9
 ERROR_CODES["COMMON/UNKNOWN_ERROR"]=10
+ERROR_CODES["IDE/PORT_NOT_EXISTS"]=11
+ERROR_CODES["IDE/PORT_NOT_DEVICE"]=12
+ERROR_CODES["IDE/UNKNOWN_ERROR"]=13
+ERROR_CODES["COMMON/UNKNOWN_ERROR_ID"]=14
+
 
 ################### </ERROR CODES> ######################################

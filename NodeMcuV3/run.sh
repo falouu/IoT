@@ -3,6 +3,8 @@
 #
 # required system commands:
 #   tar
+#
+# Tested on Arduino 1.8.5
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR="${DIR}"
@@ -16,14 +18,17 @@ source "${BASHDUINO_SRC_ROOT_DIR}/lib/common.sh"
 COMMANDS=(
 	"snapshot"
 	"shortlist"
+	"ide"
 )
 
 declare -A COMMAND_HELP
 COMMAND_HELP["snapshot"]="create snapshot of files required to download"
+COMMAND_HELP["ide"]="run properly configured Arduino IDE"
 COMMAND_HELP["shortlist"]="list all commands"
 
 declare -A COMMAND_FILES
 COMMAND_FILES["snapshot"]="create_snapshot_arduino_ide_config.sh"
+COMMAND_FILES["ide"]="ide.sh"
 COMMAND_FILES["shortlist"]="shortlist.sh"
 
 usage() {

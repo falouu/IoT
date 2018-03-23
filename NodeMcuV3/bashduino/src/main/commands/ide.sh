@@ -1,42 +1,17 @@
 #!/usr/bin/env bash
 # DO NOT CALL THIS FILE DIRECTLY!
-# call run.sh in repository root instead !
+# call run.sh in repository root instead!
 
-# Tested on Arduino 1.8.5
-
-
-# ------CONFIG--------
-PORT=/dev/ttyUSB0
-
-# ------UTILS---------
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+required_variables "PORT"
 
 
-errcho(){ >&2 echo "ERROR: $@"; }
-die(){ errcho "$1"; exit "$2"; }
-success(){ return "$?"; }
-function yes_or_no {
-    while true; do
-        read -p "Your answer [y/n]: " yn
-        case $yn in
-            [Yy]) return 0 ;;
-            [Nn]) return 1 ;;
-			*) echo "Invalid answer" ;;
-        esac
-    done
-}
-
-
-# ------PROGRAM-------
 if [[ ! -e "${PORT}" ]]; then
-	die "'${PORT}' file does not exists" 1
+	die "'${PORT}' file does not exists" "IDE/PORT_NOT_EXISTS"
 fi
 
 if [[ ! -c "${PORT}" ]]; then
-	die "'${PORT}' file is not a device!" 2
+	die "'${PORT}' file is not a device!" "IDE/PORT_NOT_DEVICE"
 fi
-
-
 
 PORT_FILE_OWNER_GROUP=$(stat --format %g "${PORT}")
 
@@ -44,10 +19,11 @@ PORT_FILE_OWNER_GROUP_NAME=$(getent group ${PORT_FILE_OWNER_GROUP} | cut -f1 -d'
 
 echo "'${PORT}' file is owned by group '${PORT_FILE_OWNER_GROUP_NAME}'"
 
+
 if [[ ! -w "${PORT}" ]]; then
 	id -G "$USER" | grep -qw "${PORT_FILE_OWNER_GROUP}"
 	success || {
-		echo "Current user (${USER}) does not belong to group '${PORT_FILE_OWNER_GROUP_NAME}', so the user can't access the file"
+		log "Current user (${USER}) does not belong to group '${PORT_FILE_OWNER_GROUP_NAME}', so the user can't access the file"
 		echo "Do you want to add user '${USER}' to group '${PORT_FILE_OWNER_GROUP_NAME}'?"
 		yes_or_no || die "No is no" 4
 
@@ -56,15 +32,18 @@ if [[ ! -w "${PORT}" ]]; then
 			die "Cannot add user '${USER}' to group '${PORT_FILE_OWNER_GROUP_NAME}'" 5
 		}
 
-		echo "You have to logout and login to get the group permissions!"
+		log "You have to logout and login to get the group permissions!"
 		exit 0
 	}
 
 
 	die "'${PORT}' file is not writable by current user!" 3
 else
-	echo "Checking permissions... OK"
+	log "Checking permissions... OK"
 fi
+
+
+
 
 
 # Dodaj definicję mikrokontrolera esp8266
