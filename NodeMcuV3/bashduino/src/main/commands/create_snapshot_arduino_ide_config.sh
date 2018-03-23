@@ -4,7 +4,7 @@
 
 required_variables "ARDUINO_CMD" "PACKAGE" "ARCH" "VERSION" "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR" "SNAPSHOT_DIRS" "CONFIG_DIR"
 
-import "bashduino/snapshots/check_required_packages" as "check_required_packages"
+import "bashduino/packages/check_required_packages" as "check_required_packages"
 
 ${ARDUINO_CMD} --install-boards ${PACKAGE}:${ARCH}:${VERSION} --pref boardsmanager.additional.urls=http://arduino.esp8266.com/stable/package_esp8266com_index.json
 
