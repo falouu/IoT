@@ -4,6 +4,8 @@
 
 required_variables "PORT"
 
+import "bashduino/snapshots/check_required_snapshots" as "check_required_snapshots"
+
 
 if [[ ! -e "${PORT}" ]]; then
 	die "'${PORT}' file does not exists" "IDE/PORT_NOT_EXISTS"
@@ -43,11 +45,23 @@ else
 fi
 
 create_snapshot_if_required() {
+    check_required_snapshots
+    success || {
+        log "Creating snapshots..."
+        run_command "snapshot"
+        success || {
+            die "Creating snapshots failed!" "IDE/CREATE_SNAPSHOTS_FAILED"
+        }
+    }
 
 }
 
-#create_snapshot_if_required()
-#update_config_dir_from_snapshot()
+update_config_dir_from_snapshot() {
+
+}
+
+create_snapshot_if_required
+update_config_dir_from_snapshot
 
 
 

@@ -63,14 +63,16 @@ require() {
   [[ -z "${value}" ]] && die "${message}" "COMMON/MISSING_PARAM"
 }
 
-# Import functions from bashduino/src/lib directory
+# Docs:
+#   Import functions from bashduino/src/lib directory
 #
-# params:
+# Params:
 #   $1  fully qualified identifier of function to be imported
 #   $2  fixed string: "as"
 #   $3  alias name to be created for that function
 #
-# returns: null
+# Returns:
+#   null
 import() {
     require "$1"
     require "$2"
@@ -94,6 +96,21 @@ import() {
     "
 }
 
+# Docs:
+#   run command on new shell
+#
+# Params:
+#   $1  command
+#
+# Returns:
+#   command status code
+run_command() {
+    require "$1"
+    local command="$1"
+    ${ROOT_DIR}/run.sh "${command}"
+    return $?
+}
+
 
 ################### <ERROR CODES> #######################################
 declare -A ERROR_CODES
@@ -113,7 +130,11 @@ ERROR_CODES["IDE/PORT_NOT_DEVICE"]=12
 ERROR_CODES["IDE/UNKNOWN_ERROR"]=13
 ERROR_CODES["COMMON/UNKNOWN_ERROR_ID"]=14
 ERROR_CODES["COMMON/INVALID_PARAM"]=15
-ERROR_CODES["COMMON/IMPORT_LIB_NOT_EXISTS"]=15
+ERROR_CODES["COMMON/IMPORT_LIB_NOT_EXISTS"]=16
+ERROR_CODES["IDE/CREATE_SNAPSHOTS_FAILED"]=17
+ERROR_CODES["INSTALL_PACKAGES/NO_SNAPSHOT_FILE"]=18
+ERROR_CODES["INSTALL_PACKAGES/UNPACK_FAILED"]=19
+
 
 
 ################### </ERROR CODES> ######################################
