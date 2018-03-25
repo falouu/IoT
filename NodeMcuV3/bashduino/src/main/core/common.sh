@@ -33,10 +33,18 @@ die(){
     message="die(): Unknown error id: '${error_id}' (original error message: '${message}')"
     error_id="COMMON/UNKNOWN_ERROR_ID"
   }
-  errcho "${message}"
+  errcho "${message} [$(caller)]"
   exit "${ERROR_CODES[${error_id}]}";
 }
-success(){ return "$?"; }
+
+success(){
+    local code="$?"
+    [[ "${code}" == "${ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]}" ]] && {
+        die "Command not found error!" "SYSTEM/COMMAND_NOT_FOUND"
+    }
+    return "${code}"
+}
+
 yes_or_no() {
     while true; do
         read -p "Your answer [y/n]: " yn
@@ -48,10 +56,44 @@ yes_or_no() {
     done
 }
 
+# Params:
+#   $1  separator (might be multi-character)
+#   $2  array
+# Exit policy:
+#   never exits
+join_by() {
+    local d=$1
+    shift
+    local result="$1"
+    shift
+    RETURN_VALUE="${result}$(printf "%s" "${@/#/$d}")"
+}
 
-function join_by { local IFS="$1"; shift; echo "$*"; }
+# Params:
+#   $1  separator (might be multi-character)
+#   $2  string to split
+# Exit policy:
+#   never exits
+split_by() {
+    local delimiter="$1"
+    local str="$2"
+    local s="${str}${delimiter}"
+    local result=()
 
-# returns: null
+    while [[ "$s" ]]; do
+        result+=( "${s%%"${delimiter}"*}" );
+        s=${s#*"${delimiter}"};
+    done;
+
+    RETURN_VALUE=( "${result[@]}" )
+}
+
+# Params:
+#   $1 value to check for existence
+# Returns:
+#   null
+# Exit policy:
+#   die, if checks fails
 require() {
   [[ -z ${1+present} ]] && die "require(): missing parameter 1" "COMMON/MISSING_PARAM"
   local value="$1"
@@ -62,6 +104,68 @@ require() {
   fi
   [[ -z "${value}" ]] && die "${message}" "COMMON/MISSING_PARAM"
 }
+
+declare -A MAPS
+# Exit policy:
+#   die, if invalid format
+map._get_segments() {
+    require "$1"
+    local statement="$1"
+    local result=()
+    [[ "$statement" =~ ^([[:alnum:]]+)(\[(.*)\])*$ ]] || {
+        die "Invalid format of map statement" "GENERAL/SYNTAX_ERROR"
+    }
+    local main_segment="${BASH_REMATCH[1]}"
+
+    result=( "${main_segment}" )
+
+    if [[ "${BASH_REMATCH[2]}" ]]; then
+        local index_segment="${BASH_REMATCH[3]}"
+        split_by "][" "${index_segment}"
+        for index in "${RETURN_VALUE[@]}"; do
+            [[ "$index" =~ ^[a-zA-Z_][a-zA-Z0-9]*$ ]] || {
+                die "invalid map index: '${index}'" "GENERAL/SYNTAX_ERROR"
+            }
+            result+=( "${index}" )
+        done
+    fi
+    RETURN_VALUE=( "${result[@]}" )
+    return 0
+
+}
+
+map.get() {
+    require "$1"
+    local statement="$1"
+}
+map.set() {
+    require "$1"
+    require "$2"
+
+    local statement="$1"
+    local value="$2"
+
+    map._get_segments "${statement}"
+    local segments=( "${RETURN_VALUE[@]}" )
+    local parent=${segments[0]}
+    for segment in "${segments[@]:1}"; do
+        [[ -v "${parent}" ]] || {
+            debug "declaring ${parent}"
+            declare -g -a "${parent}"
+        }
+        eval "${parent}+=( \"${segment}\" )"
+        parent="${parent}_${segment}"
+    done
+
+    declare -g "${parent}"
+    local -n pointer="${parent}"
+    pointer="${value}"
+
+}
+map.keys() {
+    return
+}
+
 
 # Docs:
 #   Import functions from bashduino/src/lib directory
@@ -134,7 +238,10 @@ ERROR_CODES["COMMON/IMPORT_LIB_NOT_EXISTS"]=16
 ERROR_CODES["IDE/CREATE_SNAPSHOTS_FAILED"]=17
 ERROR_CODES["INSTALL_PACKAGES/NO_SNAPSHOT_FILE"]=18
 ERROR_CODES["INSTALL_PACKAGES/UNPACK_FAILED"]=19
+ERROR_CODES["GENERAL/SYNTAX_ERROR"]=20
 
+
+ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]=127
 
 
 ################### </ERROR CODES> ######################################

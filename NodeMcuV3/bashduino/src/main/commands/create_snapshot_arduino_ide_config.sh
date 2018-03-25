@@ -2,13 +2,22 @@
 # DO NOT CALL THIS FILE DIRECTLY!
 # call run.sh in repository root instead!
 
-required_variables "ARDUINO_CMD" "PACKAGE" "ARCH" "VERSION" "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR" "SNAPSHOT_DIRS" "CONFIG_DIR"
+required_variables "ARDUINO_CMD" "PACKAGE" "ARCH" "VERSION" "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR" "SNAPSHOT_DIRS" "CONFIG_DIR" "BOADRSMANAGER_URL"
 
 import "bashduino/packages/check_required_packages" as "check_required_packages"
 
-${ARDUINO_CMD} --install-boards ${PACKAGE}:${ARCH}:${VERSION} --pref boardsmanager.additional.urls=http://arduino.esp8266.com/stable/package_esp8266com_index.json
+arduino_config_tmp_dir="$(mktemp -d)"
 
-check_required_packages || die
+die_clean() {
+    rm -rf "${arduino_config_tmp_dir}"
+    die "$1" "$2"
+}
+
+${ARDUINO_CMD} --install-boards ${PACKAGE}:${ARCH}:${VERSION} \
+  --pref boardsmanager.additional.urls="${BOADRSMANAGER_URL}" \
+  --pref settings.path="${arduino_config_tmp_dir}"
+
+check_required_packages "${arduino_config_tmp_dir}" || die_clean
 
 archive_package() {
 	local package_dir target_dir
@@ -20,18 +29,20 @@ archive_package() {
 	         "SCRIPTS/CREATE_SNAPSHOT_ARDUINO_IDE_CONFIG/MISSING_SNAPSHOTS_DIR"
 
 	target_dir="${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}/${package_dir}"
-	mkdir -p "${target_dir}" || die
+	mkdir -p "${target_dir}" || die_clean
 
 	pushd "${CONFIG_DIR}"
 	tar --create --bzip2 --sparse --file "${target_dir}/archive.tar.bz2" "${package_dir}"
-	popd
 	success || die "archive creation failed" "SCRIPTS/CREATE_SNAPSHOT_ARDUINO_IDE_CONFIG/ARCHIVE_CREATE_FAILED"
+	popd
 }
 
 for snapshot_dir in "${SNAPSHOT_DIRS[@]}"; do
 	log "Creating snapshot of dir '${snapshot_dir}'..."
 	archive_package "${snapshot_dir}"
 done
+
+rm -rf "${arduino_config_tmp_dir}"
 
 log "All snapshots created in directory '${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}'"
 

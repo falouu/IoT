@@ -8,6 +8,8 @@ PACKAGE="esp8266"
 ARCH="esp8266"
 VERSION="2.4.1"
 
+BOADRSMANAGER_URL="http://arduino.esp8266.com/stable/package_esp8266com_index.json"
+
 SNAPSHOT_DIRS=(
 	"packages/esp8266/hardware/esp8266/2.4.1/"
 	"packages/esp8266/tools/esptool/0.4.13/"

@@ -4,6 +4,20 @@
 
 required_variables "SNAPSHOT_DIRS" "CONFIG_DIR" "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR"
 
+import "bashduino/snapshots/check_required_snapshots" as "check_required_snapshots"
+
+create_snapshot_if_required() {
+    check_required_snapshots
+    success || {
+        log "Creating snapshots..."
+        run_command "snapshot"
+        success || {
+            die "Creating snapshots failed!" "IDE/CREATE_SNAPSHOTS_FAILED"
+        }
+    }
+
+}
+
 install_package() {
     require "$1"
     local package_dir="$1"
@@ -17,6 +31,9 @@ install_package() {
     tar --extract --directory "${CONFIG_DIR}" --file "${snapshot_dir_archive}"
     success || die "unpacking failed" "INSTALL_PACKAGES/UNPACK_FAILED"
 }
+
+
+create_snapshot_if_required
 
 for snapshot_dir in "${SNAPSHOT_DIRS[@]}"; do
     snapshot_dir_abs="${CONFIG_DIR}/${snapshot_dir}"

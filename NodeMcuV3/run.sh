@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bash 4.2 required
+# bash 4.3 required
 #
 # required system commands:
 #   tar
@@ -20,6 +20,8 @@ COMMANDS=(
 	"shortlist"
 	"ide"
 	"install_packages"
+	"test"
+	"help"
 )
 
 declare -A COMMAND_HELP
@@ -27,12 +29,27 @@ COMMAND_HELP["snapshot"]="create snapshot of files required to download"
 COMMAND_HELP["ide"]="run properly configured Arduino IDE"
 COMMAND_HELP["install_packages"]="Install required packages"
 COMMAND_HELP["shortlist"]="list all commands"
+COMMAND_HELP["test"]="run tests"
+COMMAND_HELP["help"]="help for a given command. Type: 'help <command>'"
 
 declare -A COMMAND_FILES
 COMMAND_FILES["snapshot"]="create_snapshot_arduino_ide_config.sh"
 COMMAND_FILES["ide"]="ide.sh"
 COMMAND_FILES["install_packages"]="install_packages.sh"
 COMMAND_FILES["shortlist"]="shortlist.sh"
+COMMAND_FILES["test"]="test.sh"
+COMMAND_FILES["help"]="help.sh"
+
+declare -A COMMAND_PARAMS
+COMMAND_PARAMS["snapshot"]="COMMAND_PARAMS_SNAPSHOT"
+
+COMMAND_PARAMS_SNAPSHOT=( "COMMAND_PARAMS_SNAPSHOT_CONFIG_DIR" )
+
+declare -A COMMAND_PARAMS_SNAPSHOT_CONFIG_DIR
+COMMAND_PARAMS_SNAPSHOT_CONFIG_DIR["name"]="config-dir"
+COMMAND_PARAMS_SNAPSHOT_CONFIG_DIR["default"]="default arduino config dir"
+COMMAND_PARAMS_SNAPSHOT_CONFIG_DIR["description"]="arduino config directory"
+
 
 usage() {
 	echo "usage:"
@@ -79,6 +96,10 @@ shift
 containsElement "${COMMAND}" "${COMMANDS[@]}" || {
 	usage "unknown command: ${COMMAND}" "RUN/UNKNOWN_COMMAND"
 }
+
+declare -A PARAMS
+
+# TODO: fill PARAMS
 
 source "${BASHDUINO_SRC_ROOT_DIR}/commands/${COMMAND_FILES[${COMMAND}]}"
 
