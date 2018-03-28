@@ -134,9 +134,36 @@ map._get_segments() {
 
 }
 
+# Returns:
+#   0  value found, and it is leaf (value returned in RETURN_VALUE)
+#   1  value found, and it is not leaf (array of keys returned in RETURN_VALUE)
+#   2  value not found
+# RETURN_VALUE:
+#   value of the statement if found, different types according to return code
+
 map.get() {
     require "$1"
     local statement="$1"
+
+    map._get_segments "${statement}"
+    local segments=( "${RETURN_VALUE[@]}" )
+    local parent="${segments[0]}"
+    for segment in "${segments[@]:1}"; do
+        parent="${parent}_${segment}"
+    done
+
+    #debug "parent='${parent}'"
+    [[ -v "${parent}" ]] || [[ -v "${parent}[@]" ]] || {
+        RETURN_VALUE=""
+        return 2
+    }
+    [[ "$(declare -p ${parent})" =~ "declare -A" ]] && {
+        local -n ref="${parent}"
+        RETURN_VALUE=( "${!ref[@]}" )
+        return 1
+    }
+    RETURN_VALUE="${!parent}"
+    return 0
 }
 map.set() {
     require "$1"
@@ -147,13 +174,14 @@ map.set() {
 
     map._get_segments "${statement}"
     local segments=( "${RETURN_VALUE[@]}" )
-    local parent=${segments[0]}
+    local parent="${segments[0]}"
     for segment in "${segments[@]:1}"; do
         [[ -v "${parent}" ]] || {
-            debug "declaring ${parent}"
-            declare -g -a "${parent}"
+            #debug "declaring ${parent}"
+            declare -g -A "${parent}"
         }
-        eval "${parent}+=( \"${segment}\" )"
+        #debug "${parent}+=( \"${segment}\" )"
+        eval "${parent}[\"${segment}\"]=\"DEFINED\""
         parent="${parent}_${segment}"
     done
 
@@ -161,9 +189,6 @@ map.set() {
     local -n pointer="${parent}"
     pointer="${value}"
 
-}
-map.keys() {
-    return
 }
 
 

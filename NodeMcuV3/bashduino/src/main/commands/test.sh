@@ -54,7 +54,45 @@ if false; then
     done
 fi
 
-if true; then
+if false; then
     map.set ala[ma][kota] "to nie prawda"
     declare -p | grep ala
+fi
+
+if true; then
+    map.set ala[ma][kota] "to nie prawda"
+    map.set ala[ma][psa] "pieska"
+    map.set ala[dzieci][marta] "7 lat"
+
+    get_and_print() {
+        require "$1"
+        statement="$1"
+        map.get "$1"
+
+        case "$?" in
+        0)
+            echo "${statement}='${RETURN_VALUE}'. Return code: 0"
+            ;;
+        1)
+            echo "${statement}=Array. Return code: 1"
+            for key in "${RETURN_VALUE[@]}"; do
+                echo "key: '${key}'"
+            done
+            ;;
+        2)
+            echo "${statement} NOT DEFINED. Return code: 2. RETURN_VALUE=${RETURN_VALUE}"
+            ;;
+        esac
+        echo
+    }
+
+    get_and_print ala[ma][psa]
+    get_and_print ala[ma][kota]
+    get_and_print ala[dzieci][marta]
+    get_and_print ala[dzieci][krzysiek]
+    #keys
+    get_and_print ala[ma]
+    get_and_print ala
+
+
 fi
