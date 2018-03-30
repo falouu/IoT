@@ -201,6 +201,17 @@ map.get_value_or_die() {
     }
 }
 
+map.get_value_or_empty() {
+    require "$1"
+    local statement="$1"
+
+    map.get "$1"
+    local status="$?"
+    [[ "${status}" == "1" ]] && {
+        die "Expected scalar value for map key: '${statement}'. Found inner map!" "GENERAL/INVALID_VALUE_TYPE"
+    }
+}
+
 # Params:
 #   $1 | map statement
 # RETURN_VALUE:

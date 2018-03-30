@@ -8,6 +8,8 @@ setup() {
     map.set PARAMS[testName][name] "test"
     map.set PARAMS[testName][description] "run single test"
     map.set PARAMS[testName][required] "false"
+    map.set PARAMS[testName][valuePlaceholder] "test name"
+    map.set PARAMS[testName][defaultDescription] "run all tests"
 }
 
 # Input variables
