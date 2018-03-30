@@ -140,14 +140,13 @@ map._get_segments() {
 #   2  value not found
 # RETURN_VALUE:
 #   value of the statement if found, different types according to return code
-
 map.get() {
     require "$1"
     local statement="$1"
 
     map._get_segments "${statement}"
     local segments=( "${RETURN_VALUE[@]}" )
-    local parent="${segments[0]}"
+    local parent="map_${segments[0]}"
     for segment in "${segments[@]:1}"; do
         parent="${parent}_${segment}"
     done
@@ -174,7 +173,7 @@ map.set() {
 
     map._get_segments "${statement}"
     local segments=( "${RETURN_VALUE[@]}" )
-    local parent="${segments[0]}"
+    local parent="map_${segments[0]}"
     for segment in "${segments[@]:1}"; do
         [[ -v "${parent}" ]] || {
             #debug "declaring ${parent}"
@@ -188,7 +187,60 @@ map.set() {
     declare -g "${parent}"
     local -n pointer="${parent}"
     pointer="${value}"
+}
 
+# Params:
+#   $1 | map statement
+# RETURN_VALUE:
+#   value of the statement if found and it is scalar value
+# Exit policy:
+#   die, if value not set or it is not scalar value
+map.get_value_or_die() {
+    require "$1"
+    local statement="$1"
+
+    map.get "$1"
+    local status="$?"
+    [[ "${status}" == "0" ]] || {
+        die "Expected scalar value for map key: '${statement}'. Found something else!" "GENERAL/INVALID_VALUE_TYPE"
+    }
+}
+
+# Params:
+#   $1 | map statement
+# RETURN_VALUE:
+#   array of keys of inner map assigned to that map element
+# Exit policy:
+#   die, if value not set or it is not inner map
+map.get_keys_or_die() {
+    require "$1"
+    local statement="$1"
+
+    map.get "$1"
+    local status="$?"
+    [[ "${status}" == "1" ]] || {
+        die "Expected inner map value for map key: '${statement}'. Found something else!" "GENERAL/INVALID_VALUE_TYPE"
+    }
+}
+
+# Params:
+#   $1 | map statement
+# RETURN_VALUE:
+#   array of keys of inner map assigned to that map element, or empty array if map element is not set
+# Exit policy:
+#   die, if value is a scalar
+map.get_keys_or_empty() {
+    require "$1"
+    local statement="$1"
+
+    map.get "$1"
+    local status="$?"
+    [[ "${status}" == "0" ]] && {
+        die "Expected inner map value for map key: '${statement}'. Found scalar value!" "GENERAL/INVALID_VALUE_TYPE"
+    }
+    [[ "${status}" == "2" ]] && {
+        RETURN_VALUE=()
+    }
 }
 
 
@@ -264,6 +316,9 @@ ERROR_CODES["IDE/CREATE_SNAPSHOTS_FAILED"]=17
 ERROR_CODES["INSTALL_PACKAGES/NO_SNAPSHOT_FILE"]=18
 ERROR_CODES["INSTALL_PACKAGES/UNPACK_FAILED"]=19
 ERROR_CODES["GENERAL/SYNTAX_ERROR"]=20
+ERROR_CODES["RUN/INVALID_OPTION"]=21
+ERROR_CODES["GENERAL/INVALID_VALUE_TYPE"]=22
+ERROR_CODES["RUN/OPTION_MISSING"]=23
 
 
 ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]=127

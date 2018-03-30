@@ -2,4 +2,14 @@
 # DO NOT CALL THIS FILE DIRECTLY!
 # call run.sh in repository root instead!
 
-echo "${COMMANDS[@]}"
+# Output variables:
+#   PARAMS | map | define params for command
+setup() {
+    return
+}
+
+# Input variables
+#   ARGS | map | arguments values
+run() {
+    echo "${COMMANDS[@]}"
+}

@@ -30,7 +30,7 @@ COMMAND_HELP["ide"]="run properly configured Arduino IDE"
 COMMAND_HELP["install_packages"]="Install required packages"
 COMMAND_HELP["shortlist"]="list all commands"
 COMMAND_HELP["test"]="run tests"
-COMMAND_HELP["help"]="help for a given command. Type: 'help <command>'"
+COMMAND_HELP["help"]="help for a given command. Type: 'help --command <command>'"
 
 declare -A COMMAND_FILES
 COMMAND_FILES["snapshot"]="create_snapshot_arduino_ide_config.sh"
@@ -38,18 +38,6 @@ COMMAND_FILES["ide"]="ide.sh"
 COMMAND_FILES["install_packages"]="install_packages.sh"
 COMMAND_FILES["shortlist"]="shortlist.sh"
 COMMAND_FILES["test"]="test.sh"
-COMMAND_FILES["help"]="help.sh"
-
-declare -A COMMAND_PARAMS
-COMMAND_PARAMS["snapshot"]="COMMAND_PARAMS_SNAPSHOT"
-
-COMMAND_PARAMS_SNAPSHOT=( "COMMAND_PARAMS_SNAPSHOT_CONFIG_DIR" )
-
-declare -A COMMAND_PARAMS_SNAPSHOT_CONFIG_DIR
-COMMAND_PARAMS_SNAPSHOT_CONFIG_DIR["name"]="config-dir"
-COMMAND_PARAMS_SNAPSHOT_CONFIG_DIR["default"]="default arduino config dir"
-COMMAND_PARAMS_SNAPSHOT_CONFIG_DIR["description"]="arduino config directory"
-
 
 usage() {
 	echo "usage:"
@@ -57,9 +45,13 @@ usage() {
 	for command in "${COMMANDS[@]}"; do
 		echo "    ${command} - ${COMMAND_HELP[${command}]}"
 	done
-	echo 
+	echo
 	echo "  If you want autocompletion of these commands, run following command: 'source \"${ROOT_DIR}/autocomplete.sh\"'"
-	echo 
+	echo
+}
+
+usage_and_die() {
+	usage
 	die "$1" "$2"
 }
 
@@ -92,37 +84,117 @@ get_var() {
 
 COMMAND="$1"
 shift
-[[ -z "${COMMAND}" ]] && usage "no command specified" "RUN/NO_COMMAND"
+[[ -z "${COMMAND}" ]] && usage_and_die "no command specified" "RUN/NO_COMMAND"
 containsElement "${COMMAND}" "${COMMANDS[@]}" || {
-	usage "unknown command: ${COMMAND}" "RUN/UNKNOWN_COMMAND"
+	usage_and_die "unknown command: ${COMMAND}" "RUN/UNKNOWN_COMMAND"
 }
 
-declare -A PARAMS
+declare -A ARGS
 
-# TODO: fill PARAMS
+while true; do
+    [[ $# -eq 0 ]] && break
+    arg="$1"
+    shift
+    if [[ $arg =~ ^--([a-zA-Z-]+)$ ]]; then
+        name="${BASH_REMATCH[1]}"
+        value="$1"
+        shift
+        if [[ -z "${value}" ]]; then
+            value=true
+        fi
+        ARGS[$name]="${value}"
+    elif [[ "${arg}" ]]; then
+        die "Invalid option: '${arg}'. Every options must start with '--' prefix" "RUN/INVALID_OPTION"
+    fi
+done
 
-source "${BASHDUINO_SRC_ROOT_DIR}/commands/${COMMAND_FILES[${COMMAND}]}"
+_execute_command() {
+    require "$1"
+    local command="$1"
+    _setup_command "${command}"
+    run
+    [[ "$?" == "${ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]}" ]] && {
+        die "run() method not defined for command '${command}'" "SYSTEM/COMMAND_NOT_FOUND"
+    }
+}
 
+_setup_command() {
+    require "$1"
+    local command="$1"
+    source "${BASHDUINO_SRC_ROOT_DIR}/commands/${COMMAND_FILES[${command}]}"
 
+    # Output variables:
+    #   PARAM_BY_NAME | associative array | must be declared prior
+    get_param_names() {
+        map.get_keys_or_empty PARAMS
+        local status="$?"
+        local params_ids=( "${RETURN_VALUE[@]}" )
 
+        for param_id in "${params_ids[@]}"; do
+            map.get_value_or_die PARAMS[${param_id}][name]
+            PARAM_BY_NAME["${RETURN_VALUE}"]="${param_id}"
+        done
+    }
 
+    setup
+    [[ "$?" == "${ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]}" ]] && {
+        die "setup() method not defined for command '${command}'" "SYSTEM/COMMAND_NOT_FOUND"
+    }
 
+    declare -A PARAM_BY_NAME
+    get_param_names
 
-# while true; do
-# 	arg="$1"
-# 	shift
-# 	if [[ $arg =~ ^--([a-zA-Z-]+)$ ]]; then
-# 		name="${BASH_REMATCH[1]}"
-# 		value="$1"
-# 		shift
-# 		if [[ -z "$value" ]]; then
-# 			value=true
-# 		fi
-# 		COMMON_ARGS[$name]="$value"
-# 	elif [[ ! -z "$arg" ]]; then
-# 		errcho "Invalid option: ${arg}"
-# 		exit 1
-# 	else
-# 		return 0
-# 	fi
-# done
+    for arg in "${!ARGS[@]}"; do
+        containsElement "${arg}" "${!PARAM_BY_NAME[@]}" || {
+            die "Unexpected option: '--${arg}'" "RUN/INVALID_OPTION"
+        }
+    done
+
+    map.get_keys_or_empty PARAMS
+    local param_ids=( "${RETURN_VALUE[@]}" )
+    for param_id in "${param_ids[@]}"; do
+        map.get_value_or_die PARAMS[${param_id}][required]
+        local is_required="${RETURN_VALUE}"
+        [[ "${is_required}" == "true" ]] && {
+            map.get_value_or_die PARAMS[${param_id}][name]
+            local param_name="${RETURN_VALUE}"
+            [[ "${ARGS[${param_name}]}" ]] || {
+                die "Option '--${param_name}' is required and is not set!" "RUN/OPTION_MISSING"
+            }
+
+        }
+    done
+}
+
+_execute_help() {
+    if [[ "${ARGS[command]}" ]]; then
+        _execute_help_for_command "${ARGS[command]}"
+    else
+        usage
+    fi
+}
+
+_execute_help_for_command() {
+    require "$1"
+    local command="$1"
+    unset ARGS
+    declare -A ARGS
+    _setup_command "${command}"
+
+    echo "Help for command '${command}':"
+    echo "  Options:"
+    map.get_keys_or_empty PARAMS
+    local param_ids=( "${RETURN_VALUE[@]}" )
+    for param_id in "${param_ids[@]}"; do
+        map.get_value_or_die PARAMS[${param_id}][name]
+        local param_name="${RETURN_VALUE}"
+        echo "    --${param_name}"
+    done
+
+}
+
+if [[ "${COMMAND}" == "help" ]]; then
+    _execute_help
+else
+    _execute_command "${COMMAND}"
+fi
