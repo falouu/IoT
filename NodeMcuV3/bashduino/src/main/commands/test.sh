@@ -70,7 +70,7 @@ run() {
         declare -p | grep ala
     fi
 
-    if true; then
+    if false; then
         map.set ala[ma][kota] "to nie prawda"
         map.set ala[ma][psa] "pieska"
         map.set ala[dzieci][marta] "7 lat"
@@ -101,11 +101,32 @@ run() {
         get_and_print ala[ma][kota]
         get_and_print ala[dzieci][marta]
         get_and_print ala[dzieci][krzysiek]
+        get_and_print ala[rodzice][tata]
         #keys
         get_and_print ala[ma]
         get_and_print ala
         get_and_print maciek
+    fi
 
+    if true; then
+        map.set koty[liza][maslo] "czy koty liżą masło?"
+        map.set koty[liza][chleb] "czt koty liżą chleb?"
+        map.set koty[czyszcza][futro] "czy koty czyszczą futro?"
+        map.set psy[aportuja][patyki] "czy psy aportują patyki"
+
+        declare -p | grep map_
+
+        echo -e "\n > map.unset koty[liza][chleb] \n"
+        map.unset koty[liza][chleb]
+        declare -p | grep map_
+
+        echo -e "\n > map.unset koty[liza][maslo] \n"
+        map.unset koty[liza][maslo]
+        declare -p | grep map_
+
+        echo -e "\n > map.unset psy \n"
+        map.unset psy
+        declare -p | grep map_
 
     fi
 }

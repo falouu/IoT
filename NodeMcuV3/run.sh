@@ -38,6 +38,7 @@ COMMAND_FILES["ide"]="ide.sh"
 COMMAND_FILES["install_packages"]="install_packages.sh"
 COMMAND_FILES["shortlist"]="shortlist.sh"
 COMMAND_FILES["test"]="test.sh"
+COMMAND_FILES["help"]="help.sh"
 
 usage() {
 	echo "usage:"
@@ -166,35 +167,4 @@ _setup_command() {
     done
 }
 
-_execute_help() {
-    if [[ "${ARGS[command]}" ]]; then
-        _execute_help_for_command "${ARGS[command]}"
-    else
-        usage
-    fi
-}
-
-_execute_help_for_command() {
-    require "$1"
-    local command="$1"
-    unset ARGS
-    declare -A ARGS
-    _setup_command "${command}"
-
-    echo "Help for command '${command}':"
-    echo "  Options:"
-    map.get_keys_or_empty PARAMS
-    local param_ids=( "${RETURN_VALUE[@]}" )
-    for param_id in "${param_ids[@]}"; do
-        map.get_value_or_die PARAMS[${param_id}][name]
-        local param_name="${RETURN_VALUE}"
-        echo "    --${param_name}"
-    done
-
-}
-
-if [[ "${COMMAND}" == "help" ]]; then
-    _execute_help
-else
-    _execute_command "${COMMAND}"
-fi
+_execute_command "${COMMAND}"

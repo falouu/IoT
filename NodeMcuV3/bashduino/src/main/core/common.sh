@@ -144,24 +144,19 @@ map.get() {
     require "$1"
     local statement="$1"
 
-    map._get_segments "${statement}"
-    local segments=( "${RETURN_VALUE[@]}" )
-    local parent="map_${segments[0]}"
-    for segment in "${segments[@]:1}"; do
-        parent="${parent}_${segment}"
-    done
+    map._get_var_name_of_statement "${statement}"
+    local var_name="${RETURN_VALUE}"
 
-    #debug "parent='${parent}'"
-    [[ -v "${parent}" ]] || [[ -v "${parent}[@]" ]] || {
+    [[ -v "${var_name}" ]] || [[ -v "${var_name}[@]" ]] || {
         RETURN_VALUE=""
         return 2
     }
-    [[ "$(declare -p ${parent})" =~ "declare -A" ]] && {
-        local -n ref="${parent}"
+    [[ "$(declare -p ${var_name})" =~ "declare -A" ]] && {
+        local -n ref="${var_name}"
         RETURN_VALUE=( "${!ref[@]}" )
         return 1
     }
-    RETURN_VALUE="${!parent}"
+    RETURN_VALUE="${!var_name}"
     return 0
 }
 map.set() {
@@ -241,6 +236,86 @@ map.get_keys_or_empty() {
     [[ "${status}" == "2" ]] && {
         RETURN_VALUE=()
     }
+}
+
+# Params:
+#   $1 | map statement
+# RETURN_VALUE:
+#   null
+# Exit policy:
+#   unknown
+map.unset() {
+    require "$1"
+    local statement="$1"
+
+    map._get_segments "${statement}"
+    local segments=( "${RETURN_VALUE[@]}" )
+
+    map._unset_children "${statement}"
+
+    local seg_count="${#segments[@]}"
+    local parent_segments=( "${segments[@]:0:${seg_count}-1}" )
+
+    [[ "${#parent_segments[@]}" == "0" ]] && {
+        return
+    }
+
+    local last_segment="${segments[-1]}"
+    map._get_var_name_of_segments "${parent_segments[@]}"
+    local parent_var_name="${RETURN_VALUE}"
+
+    eval "unset ${parent_var_name}[\"${last_segment}\"]"
+    local -n pointer="${parent_var_name}"
+    if [[ "${#pointer[@]}" == "0" ]]; then
+        map._get_statement_from_segments "${parent_segments[@]}"
+        local parent_statement="${RETURN_VALUE}"
+        map.unset "${parent_statement}"
+    fi
+}
+
+map._unset_children() {
+    require "$1"
+    local statement="$1"
+
+    map.get "$1"
+    local status="$?"
+    [[ "${status}" == "1" ]] && {
+        local children=( "${RETURN_VALUE[@]}" )
+        for child in "${children[@]}"; do
+            local child_statement="${statement}[${child}]"
+            map._unset_children "${child_statement}"
+        done
+    }
+    map._get_var_name_of_statement "${statement}"
+    local var_name="${RETURN_VALUE}"
+    unset "${var_name}"
+}
+
+map._get_var_name_of_statement() {
+    require "$1"
+    local statement="$1"
+
+    map._get_segments "${statement}"
+    local segments=( "${RETURN_VALUE[@]}" )
+    map._get_var_name_of_segments "${segments[@]}"
+}
+
+map._get_var_name_of_segments() {
+    local segments=( "$@" )
+    local var_name="map_${segments[0]}"
+    for segment in "${segments[@]:1}"; do
+        var_name="${var_name}_${segment}"
+    done
+    RETURN_VALUE="${var_name}"
+}
+
+map._get_statement_from_segments() {
+    local segments=( "$@" )
+    local statement="${segments[0]}"
+    for segment in "${segments[@]:1}"; do
+        statement="${statement}[${segment}]"
+    done
+    RETURN_VALUE="${statement}"
 }
 
 
