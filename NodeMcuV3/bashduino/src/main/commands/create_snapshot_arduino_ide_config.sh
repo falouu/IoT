@@ -11,6 +11,7 @@ setup() {
     map.set PARAMS[configDir][description] "arduino config directory"
     map.set PARAMS[configDir][defaultDescription] "default arduino config dir"
     map.set PARAMS[configDir][required] "false"
+    map.set PARAMS[configDir][valuePlaceholder] "directory"
 }
 
 # Input variables

@@ -91,19 +91,26 @@ containsElement "${COMMAND}" "${COMMANDS[@]}" || {
 }
 
 declare -A ARGS
+declare -A ARGS_RAW
 
+option_pattern="^--([a-zA-Z-]+)$"
 while true; do
     [[ $# -eq 0 ]] && break
     arg="$1"
     shift
-    if [[ $arg =~ ^--([a-zA-Z-]+)$ ]]; then
+    if [[ $arg =~ $option_pattern ]]; then
         name="${BASH_REMATCH[1]}"
         value="$1"
-        shift
+        if [[ $value =~ $option_pattern ]]; then
+            value=""
+        else
+            shift
+        fi
+
         if [[ -z "${value}" ]]; then
             value=true
         fi
-        ARGS[$name]="${value}"
+        ARGS_RAW[$name]="${value}"
     elif [[ "${arg}" ]]; then
         die "Invalid option: '${arg}'. Every options must start with '--' prefix" "RUN/INVALID_OPTION"
     fi
@@ -145,7 +152,7 @@ _setup_command() {
     declare -A PARAM_BY_NAME
     get_param_names
 
-    for arg in "${!ARGS[@]}"; do
+    for arg in "${!ARGS_RAW[@]}"; do
         containsElement "${arg}" "${!PARAM_BY_NAME[@]}" || {
             die "Unexpected option: '--${arg}'" "RUN/INVALID_OPTION"
         }
@@ -156,14 +163,16 @@ _setup_command() {
     for param_id in "${param_ids[@]}"; do
         map.get_value_or_die PARAMS[${param_id}][required]
         local is_required="${RETURN_VALUE}"
-        [[ "${is_required}" == "true" ]] && {
-            map.get_value_or_die PARAMS[${param_id}][name]
-            local param_name="${RETURN_VALUE}"
-            [[ "${ARGS[${param_name}]}" ]] || {
-                die "Option '--${param_name}' is required and is not set!" "RUN/OPTION_MISSING"
-            }
 
-        }
+        map.get_value_or_die PARAMS[${param_id}][name]
+        local param_name="${RETURN_VALUE}"
+        if [[ "${ARGS_RAW[${param_name}]}" ]]; then
+            ARGS[${param_id}]="${ARGS_RAW[${param_name}]}"
+        else
+            if [[ "${is_required}" == "true" ]]; then
+                die "Option '--${param_name}' is required and is not set!" "RUN/OPTION_MISSING"
+            fi
+        fi
     done
 }
 

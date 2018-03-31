@@ -10,12 +10,62 @@ setup() {
     map.set PARAMS[testName][required] "false"
     map.set PARAMS[testName][valuePlaceholder] "test name"
     map.set PARAMS[testName][defaultDescription] "run all tests"
+
+    map.set PARAMS[list][name] "list"
+    map.set PARAMS[list][description] "list all test names"
+    map.set PARAMS[list][required] "false"
 }
 
 # Input variables
 #   ARGS | map | arguments values
 run() {
-    if false; then
+    run_tests() {
+        test_functions=()
+        pattern="^[[:space:]]*declare[[:space:]]+-f[[:space:]]+([a-zA-Z0-9_]+)$"
+        while read -r line; do
+            [[ "${line}" =~ $pattern ]] || continue
+            local function_name="${BASH_REMATCH[1]}"
+            [[ "${function_name}" == test_* ]] || continue
+            test_functions+=( "${function_name}" )
+
+        done <<< "$(declare -F)"
+
+        local test_name="${ARGS[testName]}"
+        local is_list_command="${ARGS[list]}"
+
+        if [[ "${is_list_command}" == "true" ]]; then
+            printf "All tests:\n"
+            for test_function in "${test_functions[@]}"; do
+                printf "  ${test_function#test_}\n"
+            done
+            return
+        fi
+
+        if [[ "${test_name}" ]]; then
+            if containsElement "test_${test_name}" "${test_functions[@]}"; then
+                printf "\n"
+                log "Running test: '${test_name}'"
+                printf "\n"
+                "test_${test_name}"
+            else
+                die "test '${test_name}' not found!" "TEST/TEST_NOT_FOUND"
+            fi
+        else
+            for test_function in "${test_functions[@]}"; do
+                printf "\n"
+                log "Running test: '${test_function#test_}'"
+                printf "\n"
+                "${test_function}"
+            done
+        fi
+
+#        for test_function in "${test_functions[@]}"; do
+#            debug "Found test: '${test_function}'"
+#        done
+    }
+
+
+    test_basics() {
         rrr=( "a" "bb" "cc c" )
         join_by "--" "${rrr[@]}"
         echo "${RETURN_VALUE}"
@@ -26,10 +76,10 @@ run() {
 
         join_by "" "${rrr[@]}"
         echo "${RETURN_VALUE}"
-    fi
+    }
 
+    test_map_segments() {
     # # map tests
-    if false; then
         map._get_segments "dup[bip_][zip]"
 
         #trap 'echo pupa' ${ERROR_CODES["GENERAL/SYNTAX_ERROR"]}
@@ -55,24 +105,19 @@ run() {
         test_map_segments "dup[][zip]"
         test_map_segments "dup[[]][zip]"
         test_map_segments "dup[ala ma kota][zip]"
+    }
 
-    fi
+    test_split_by() {
 
-    if false; then
         str="babcia][kapcia][one two three"
         #str="babka][ddd ddd ddd         dddd"
         split_by "][" "${str}"
         for segment in "${RETURN_VALUE[@]}"; do
             echo "Segment: '${segment}'"
         done
-    fi
+    }
 
-    if false; then
-        map.set ala[ma][kota] "to nie prawda"
-        declare -p | grep ala
-    fi
-
-    if false; then
+    test_map_get_set() {
         map.set ala[ma][kota] "to nie prawda"
         map.set ala[ma][psa] "pieska"
         map.set ala[dzieci][marta] "7 lat"
@@ -108,9 +153,9 @@ run() {
         get_and_print ala[ma]
         get_and_print ala
         get_and_print maciek
-    fi
+    }
 
-    if true; then
+    test_map_unset() {
         map.set koty[liza][maslo] "czy koty liżą masło?"
         map.set koty[liza][chleb] "czt koty liżą chleb?"
         map.set koty[czyszcza][futro] "czy koty czyszczą futro?"
@@ -130,5 +175,7 @@ run() {
         map.unset psy
         declare -p | grep map_
 
-    fi
+    }
+
+    run_tests
 }
