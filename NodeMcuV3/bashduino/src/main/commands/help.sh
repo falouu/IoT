@@ -28,6 +28,7 @@ run() {
         require "$1"
         local command="$1"
         unset ARGS
+        unset ARGS_RAW
         declare -A ARGS
         map.unset PARAMS
 

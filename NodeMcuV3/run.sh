@@ -21,6 +21,7 @@ COMMANDS=(
 	"ide"
 	"install_packages"
 	"test"
+	"shell"
 	"help"
 )
 
@@ -30,6 +31,7 @@ COMMAND_HELP["ide"]="run properly configured Arduino IDE"
 COMMAND_HELP["install_packages"]="Install required packages"
 COMMAND_HELP["shortlist"]="list all commands"
 COMMAND_HELP["test"]="run tests"
+COMMAND_HELP["shell"]="run friendly shell with autocompletion"
 COMMAND_HELP["help"]="help for a given command. Type: 'help --command <command>'"
 
 declare -A COMMAND_FILES
@@ -38,6 +40,7 @@ COMMAND_FILES["ide"]="ide.sh"
 COMMAND_FILES["install_packages"]="install_packages.sh"
 COMMAND_FILES["shortlist"]="shortlist.sh"
 COMMAND_FILES["test"]="test.sh"
+COMMAND_FILES["shell"]="shell.sh"
 COMMAND_FILES["help"]="help.sh"
 
 usage() {
@@ -47,7 +50,7 @@ usage() {
 		echo "    ${command} - ${COMMAND_HELP[${command}]}"
 	done
 	echo
-	echo "  If you want autocompletion of these commands, run following command: 'source \"${ROOT_DIR}/autocomplete.sh\"'"
+	echo "  If you want autocompletion of these commands, run following command: '${ROOT_DIR}/run.sh shell'"
 	echo
 }
 
