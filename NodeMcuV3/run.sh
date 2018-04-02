@@ -88,10 +88,16 @@ get_var() {
 
 COMMAND="$1"
 shift
-[[ -z "${COMMAND}" ]] && usage_and_die "no command specified" "RUN/NO_COMMAND"
-containsElement "${COMMAND}" "${COMMANDS[@]}" || {
-	usage_and_die "unknown command: ${COMMAND}" "RUN/UNKNOWN_COMMAND"
+_validate_command() {
+    require "$1"
+    local command="$1"
+    [[ -z "${command}" ]] && usage_and_die "no command specified" "RUN/NO_COMMAND"
+    containsElement "${command}" "${COMMANDS[@]}" || {
+        usage_and_die "unknown command: ${command}" "RUN/UNKNOWN_COMMAND"
+    }
 }
+
+_validate_command "${COMMAND}"
 
 declare -A ARGS
 declare -A ARGS_RAW

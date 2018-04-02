@@ -32,6 +32,8 @@ run() {
         declare -A ARGS
         map.unset PARAMS
 
+        usage() { return; }
+        _validate_command "${command}"
         _setup_command "${command}"
 
         echo "Help for command '${command}':"
@@ -51,12 +53,12 @@ run() {
             local param_value_placeholder="${RETURN_VALUE}"
 
             if [[ "${param_required}" == "true" ]]; then
-                local param_required_string=" [required]"
+                local param_required_string="[required]"
             else
                 if [[ "${param_default_description}" ]]; then
-                    local param_required_string=" [optional; if not set: ${param_default_description}]"
+                    local param_required_string="[optional; if not set: ${param_default_description}]"
                 else
-                    local param_required_string=" [optional]"
+                    local param_required_string="[optional]"
                 fi
 
             fi
@@ -66,8 +68,11 @@ run() {
                 value_placeholder_string="<${param_value_placeholder}>"
             fi
 
-            echo "    --${param_name} ${value_placeholder_string}  |  ${param_description}${param_required_string}"
+            map.set helpParams[items][${param_id}][spec] "--${param_name} ${value_placeholder_string}"
+            map.set helpParams[items][${param_id}][desc] "${param_description}"
+            map.set helpParams[items][${param_id}][params] "${param_required_string}"
         done
+        table.print helpParams | indent 3
     }
 
     _execute_help
