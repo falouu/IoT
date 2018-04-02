@@ -425,6 +425,7 @@ table.print() {
     local columns
     local header=false
     local vertical_delimiter="|"
+    local horizontal_delimiter="-"
 
     map.get_keys_or_empty "${table_var}[items]"
     items_keys=( "${RETURN_VALUE}" )
@@ -446,7 +447,7 @@ table.print() {
     declare -A columns_lengths
 
     map.get_keys_or_die "${table_var}${primary_row}"
-    columns=( "${RETURN_VALUE}" )
+    columns=( "${RETURN_VALUE[@]}" )
 
     for column in "${columns[@]}"; do
         map.get_value_or_empty "${table_var}${primary_row}[${column}]"
@@ -464,18 +465,25 @@ table.print() {
     done
 
     if [[ "${header}" == "true" ]]; then
+        local line_length=0
+        local segments=()
         for column in "${columns[@]}"; do
             map.get_value_or_empty "${table_var}[header][${column}]"
             local value="${RETURN_VALUE}"
             local value_length="${#value}"
             local column_length="${columns_lengths[${column}]}"
-            local spaces_count="$(( ${column_length} - ${value_length} ))"
-            printf "${value}"
-            repeat " " ${spaces_count}
-            printf "${vertical_delimiter}"
+            local spaces_count="$(( column_length - value_length - 1 ))"
+            local spaces="$(repeat " " ${spaces_count})"
+            segments+=( " ${value}${spaces} " )
         done
+        join_by "${vertical_delimiter}" "${segments[@]}"
+        local line="${RETURN_VALUE}"
+        local line_length="${#line}"
+        printf "${line}\n"
+        repeat "${horizontal_delimiter}" "${line_length}"
+        printf "\n"
     fi
-
+    printf "\n"
 
 }
 
