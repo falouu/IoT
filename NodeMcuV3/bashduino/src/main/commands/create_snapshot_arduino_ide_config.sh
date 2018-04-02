@@ -7,11 +7,12 @@
 setup() {
     required_variables "ARDUINO_CMD" "PACKAGE" "ARCH" "VERSION" "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR" "SNAPSHOT_DIRS" "CONFIG_DIR" "BOARDSMANAGER_URL"
 
-    map.set PARAMS[configDir][name] "config-dir"
-    map.set PARAMS[configDir][description] "arduino config directory"
-    map.set PARAMS[configDir][defaultDescription] "default arduino config dir"
-    map.set PARAMS[configDir][required] "false"
-    map.set PARAMS[configDir][valuePlaceholder] "directory"
+#  TODO: po co to było?
+#    map.set PARAMS[configDir][name] "config-dir"
+#    map.set PARAMS[configDir][description] "arduino config directory"
+#    map.set PARAMS[configDir][defaultDescription] "default arduino config dir"
+#    map.set PARAMS[configDir][required] "false"
+#    map.set PARAMS[configDir][valuePlaceholder] "directory"
 }
 
 # Input variables
@@ -20,6 +21,7 @@ run() {
     import "bashduino/packages/check_required_packages" as "check_required_packages"
 
     arduino_config_tmp_dir="$(mktemp -d)"
+    debug "Downloading packages to temporary directory: '${arduino_config_tmp_dir}'..."
 
     die_clean() {
         rm -rf "${arduino_config_tmp_dir}"
@@ -44,9 +46,13 @@ run() {
         target_dir="${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}/${package_dir}"
         mkdir -p "${target_dir}" || die_clean
 
-        pushd "${CONFIG_DIR}"
+        pushd "${arduino_config_tmp_dir}"
         tar --create --bzip2 --sparse --file "${target_dir}/archive.tar.bz2" "${package_dir}"
-        success || die "archive creation failed" "SCRIPTS/CREATE_SNAPSHOT_ARDUINO_IDE_CONFIG/ARCHIVE_CREATE_FAILED"
+        success || {
+            rm "${target_dir}"/* 2>/dev/null
+            die "archive creation failed. Source: '${package_dir}'. CWD: '$(pwd)'" \
+                "SCRIPTS/CREATE_SNAPSHOT_ARDUINO_IDE_CONFIG/ARCHIVE_CREATE_FAILED"
+        }
         popd
     }
 

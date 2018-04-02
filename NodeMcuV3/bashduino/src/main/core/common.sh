@@ -2,16 +2,19 @@
 # DO NOT CALL THIS FILE!
 
 log() {
-  local level message log_line
+  local level message log_line command_part
   message="${1}"
   level="${2}"
   [[ -z "${level}" ]] && level="INFO"
-  log_line=">> [${level}]: ${message}"
+  command_part=""
+  [[ "${EXECUTED_COMMAND}" ]] && command_part="[${EXECUTED_COMMAND}]:"
+
+  log_line=">> [${level}]:${command_part} ${message}"
 
   if [[ "${level}" == "ERROR" ]]; then
-    >&2 echo "${log_line}"
+    >&2 printf "%s\n" "${log_line}"
   else
-    echo "${log_line}"
+    printf "%s\n" "${log_line}"
   fi
 }
 debug() { log "$@" "DEBUG"; }

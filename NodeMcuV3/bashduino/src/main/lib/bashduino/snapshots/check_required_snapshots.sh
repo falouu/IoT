@@ -16,8 +16,8 @@
 required_variables "SNAPSHOT_DIRS" "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR"
 
 for snapshot_dir in "${SNAPSHOT_DIRS[@]}"; do
-	local snapshot_dir_abs="${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}/${snapshot_dir}"
-	[[ -d "${snapshot_dir_abs}" ]] || {
+	local snapshot_file_abs="${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}/${snapshot_dir}/archive.tar.bz2"
+	[[ -f "${snapshot_file_abs}" ]] || {
 		return 1
 	}
 done

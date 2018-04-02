@@ -133,6 +133,8 @@ _execute_command() {
         return
     fi
 
+    declare -g EXECUTED_COMMAND="${command}"
+
     run
     local status="$?"
     [[ "${status}" == "${ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]}" ]] && {
