@@ -242,7 +242,7 @@ map.get_keys_or_die() {
 
     map.get "$1"
     local status="$?"
-    [[ "${status}" != "1" ]] || {
+    [[ "${status}" == "1" ]] || {
         die "Expected inner map value for map key: '${statement}'. Found something else!" "GENERAL/INVALID_VALUE_TYPE"
     }
 }
