@@ -3,7 +3,7 @@
 # call run.sh in repository root instead!
 
 # Docs:
-#   returns prefernces to set in associative array
+#   returns preferences to set in associative array
 # Params:
 #   $1  name of associative array to be filled by preferences
 # Exit policy:

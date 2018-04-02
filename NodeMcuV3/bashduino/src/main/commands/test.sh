@@ -278,6 +278,41 @@ run() {
         for pref in "${!prefs[@]}"; do
             printf "pref: '%s'='%s'\n" "${pref}" "${prefs[${pref}]}"
         done
+
+        unset prefs
+    }
+
+    test_apply_preferences() {
+        import "bashduino/preferences/apply_preferences" as "apply_preferences"
+
+        declare -A prefs
+        prefs['port']=/dev/dev/dev
+        prefs['run_twice']=true
+
+        CONFIG_DIR="$(mktemp -d)"
+        log "CONFIG_DIR: '${CONFIG_DIR}'"
+
+        local prefs_file="${CONFIG_DIR}/preferences.txt"
+
+        printf "%s\n" "## PREFERENCES" >> "${prefs_file}"
+        printf "%s\n" "board_name=nodemcu" >> "${prefs_file}"
+        printf "%s\n" " run_twice=false" >> "${prefs_file}"
+        printf "%s\n" "" >> "${prefs_file}"
+        printf "%s\n" "# these prefs don't make sense! " >> "${prefs_file}"
+        printf "%s\n" "  lorem_ipsum=dolom " >> "${prefs_file}"
+        printf "%s\n" "est=lorem ipsum dolom" >> "${prefs_file}"
+
+        printf "\n%s\n" "--- Prefs file before changes: ----------------"
+        cat "${prefs_file}"
+        printf "\n%s\n" "---END-----------------------------------------"
+
+        apply_preferences prefs
+
+        printf "\n%s\n" "--- Prefs file after changes: -----------------"
+        cat "${prefs_file}"
+        printf "\n%s\n" "---END-----------------------------------------"
+
+        unset prefs
     }
 
     run_tests
