@@ -52,7 +52,11 @@ For example signature of function `digitalWrite` is here: https://github.com/esp
 "name": "esp8266"
 "architecture": "esp8266"
 "version": "2.4.1"
-board: "NodeMCU 1.0 (ESP-12E Module)"
+
+board: {
+  name: "NodeMCU 1.0 (ESP-12E Module)"
+  id:   "nodemcuv2"
+}
 
 
 ### Tutorials

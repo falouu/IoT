@@ -134,9 +134,11 @@ _execute_command() {
     fi
 
     run
-    [[ "$?" == "${ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]}" ]] && {
+    local status="$?"
+    [[ "${status}" == "${ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]}" ]] && {
         die "run() method not defined for command '${command}'" "SYSTEM/COMMAND_NOT_FOUND"
     }
+    return "${status}"
 }
 
 _setup_command() {

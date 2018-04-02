@@ -72,3 +72,24 @@ run() {
 # * Narzędzia -> Port -> $PORT
 
 # preferencje Arduino IDE są zapisane tutaj: ~/.arduino15
+
+### Preferences to set
+# board=nodemcuv2
+# custom_CpuFrequency=nodemcuv2_80
+# custom_FlashErase=nodemcuv2_none
+# custom_FlashSize=nodemcuv2_4M1M
+# custom_LwIPVariant=nodemcuv2_v2mss536
+# custom_UploadSpeed=nodemcuv2_115200
+
+# serial.port=/dev/ttyUSB0
+# serial.port.file=ttyUSB0
+# serial.port.iserial=null
+
+# target_package=esp8266
+# target_platform=esp8266
+
+
+### Preferences MAYBE to set
+# custom_Debug=nodemcuv2_Disabled
+# custom_DebugLevel=nodemcuv2_None____
+
