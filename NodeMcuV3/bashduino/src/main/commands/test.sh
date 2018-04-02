@@ -264,11 +264,8 @@ run() {
         printf "${text}"
         log "End of Original\n"
 
-        indent 4 "${text}"
-        local indented="${RETURN_VALUE}"
-
         log "Indented:"
-        printf "%s" "${indented}"
+        echo -n "${text}" | indent 4
         log "End of Indented\n"
     }
 
