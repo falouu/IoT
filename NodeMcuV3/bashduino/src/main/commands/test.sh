@@ -192,6 +192,30 @@ run() {
         map.set TABLE[items][1][price] "999 zł"
 
         table.print TABLE
+
+        printf "\n\n"
+
+        map.set COUNTRIES[items][0][name] "Poland"
+        map.set COUNTRIES[items][0][continent] "Europe"
+        map.set COUNTRIES[items][0][language] "polish"
+        map.set COUNTRIES[items][0][religion] "Catholic church"
+
+        map.set COUNTRIES[items][1][name] "United States of America"
+        map.set COUNTRIES[items][1][continent] "North America"
+        map.set COUNTRIES[items][1][language] "english"
+        map.set COUNTRIES[items][1][religion] "many"
+
+        map.set COUNTRIES[items][2][name] "China"
+        map.set COUNTRIES[items][2][continent] "Asia"
+        map.set COUNTRIES[items][2][language] "Standard Chinese"
+        map.set COUNTRIES[items][2][religion] "Confucianism and Taoism"
+
+        map.set COUNTRIES[items][3][name] "Australia"
+        map.set COUNTRIES[items][3][continent] "Australia"
+        map.set COUNTRIES[items][3][language] "english"
+        map.set COUNTRIES[items][3][religion] "Christian"
+
+        table.print COUNTRIES
     }
 
     test_repeat() {

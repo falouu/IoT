@@ -428,7 +428,7 @@ table.print() {
     local horizontal_delimiter="-"
 
     map.get_keys_or_empty "${table_var}[items]"
-    items_keys=( "${RETURN_VALUE}" )
+    items_keys=( "${RETURN_VALUE[@]}" )
     items_count="${#items_keys[@]}"
 
     if map.is_map "${table_var}[header]"; then
@@ -466,29 +466,47 @@ table.print() {
 
     if [[ "${header}" == "true" ]]; then
         local line_length=0
-        local segments=()
-        for column in "${columns[@]}"; do
-            map.get_value_or_empty "${table_var}[header][${column}]"
-            local value="${RETURN_VALUE}"
-            local value_length="${#value}"
-            local column_length="${columns_lengths[${column}]}"
-            local spaces_count="$(( column_length - value_length - 1 ))"
-            local spaces="$(repeat " " ${spaces_count})"
-            segments+=( " ${value}${spaces} " )
-        done
-        join_by "${vertical_delimiter}" "${segments[@]}"
+        table._get_row "columns" "columns_lengths" "${table_var}[header]" "${vertical_delimiter}"
         local line="${RETURN_VALUE}"
         local line_length="${#line}"
         printf "${line}\n"
         repeat "${horizontal_delimiter}" "${line_length}"
         printf "\n"
     fi
-    printf "\n"
 
+    for item in "${items_keys[@]}"; do
+        table._get_row "columns" "columns_lengths" "${table_var}[items][${item}]" "${vertical_delimiter}"
+        local line="${RETURN_VALUE}"
+        printf "${line}\n"
+    done
+
+    printf "\n"
 }
 
-table._print_row() {
-    return
+table._get_row() {
+    require "$1"
+    local -n columns_ref="$1"
+    require "$2"
+    local -n columns_lengths_ref="$2"
+    require "$3"
+    local row_statement="$3"
+    require "$4"
+    local vertical_delimiter="$4"
+
+    local segments=()
+    for column in "${columns_ref[@]}"; do
+        map.get_value_or_empty "${row_statement}[${column}]"
+        local value="${RETURN_VALUE}"
+        local value_length="${#value}"
+        local column_length="${columns_lengths_ref[${column}]}"
+        local spaces_count="$(( column_length - value_length ))"
+        local spaces="$(repeat " " ${spaces_count})"
+        segments+=( " ${value}${spaces} " )
+    done
+    join_by "${vertical_delimiter}" "${segments[@]}"
+    local line="${RETURN_VALUE}"
+    local line_length="${#line}"
+    RETURN_VALUE="${line}"
 }
 
 # Params:
