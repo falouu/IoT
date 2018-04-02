@@ -89,7 +89,6 @@ get_var() {
 COMMAND="$1"
 shift
 _validate_command() {
-    require "$1"
     local command="$1"
     [[ -z "${command}" ]] && usage_and_die "no command specified" "RUN/NO_COMMAND"
     containsElement "${command}" "${COMMANDS[@]}" || {
