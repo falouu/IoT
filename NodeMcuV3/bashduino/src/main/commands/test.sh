@@ -249,5 +249,28 @@ run() {
         declare -p arr
     }
 
+    test_indent() {
+
+         text=$'Lorem ipsum\n'
+        text+=$'Dolom est:\n'
+        text+=$'  - one\n'
+        text+=$'  - two:\n'
+        text+=$'     a) nope\n'
+        text+=$'     b) yes\n'
+        text+=$'\n'
+        text+=$'Thats all!\n'
+
+        log "Original:"
+        printf "${text}"
+        log "End of Original\n"
+
+        indent 4 "${text}"
+        local indented="${RETURN_VALUE}"
+
+        log "Indented:"
+        printf "%s" "${indented}"
+        log "End of Indented\n"
+    }
+
     run_tests
 }

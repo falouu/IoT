@@ -88,6 +88,21 @@ split_by() {
     RETURN_VALUE=( "${result[@]}" )
 }
 
+indent() {
+    require "$1"
+    local count="$1"
+    require "$2"
+    local text="$2"
+    local output=""
+    local prefix="$(repeat " " "${count}")"
+
+    while IFS= read -r; do
+        output+="${prefix}${REPLY}"$'\n'
+    done <<< "$(printf "%s" "${text}" )"
+
+    RETURN_VALUE="${output}"
+}
+
 # Params:
 #   $1 value to check for existence
 # Returns:
