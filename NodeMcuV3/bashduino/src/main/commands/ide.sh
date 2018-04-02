@@ -12,6 +12,7 @@ setup() {
 #   ARGS | map | arguments values
 run() {
     import "bashduino/preferences/get_preferences" as "get_preferences"
+    import "bashduino/preferences/apply_preferences" as "apply_preferences"
 
     if [[ ! -e "${PORT}" ]]; then
         die "'${PORT}' file does not exists" "IDE/PORT_NOT_EXISTS"
@@ -55,19 +56,16 @@ run() {
         die "Installing packages FAILED"
     }
 
+    unset prefs
     declare -A prefs
     get_preferences prefs
 
     prefs["boardsmanager.additional.urls"]="${BOARDSMANAGER_URL}"
 
-    local prefs_string=""
-    for pref in "${!prefs[@]}"; do
-        prefs_string+=" --pref ${pref}=\"${prefs[${pref}]}\""
-    done
+    apply_preferences prefs
+    unset prefs
 
-    local arduino_cmd="${ARDUINO_CMD} ${prefs_string}"
-    log "Running arduino using command: '${arduino_cmd}'"
-    ${arduino_cmd}
+    ${ARDUINO_CMD}
 }
 
 #update_config_dir_from_snapshot() {
