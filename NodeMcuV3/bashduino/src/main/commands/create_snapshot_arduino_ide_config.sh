@@ -5,7 +5,7 @@
 # Output variables:
 #   PARAMS | map | define params for command
 setup() {
-    required_variables "ARDUINO_CMD" "PACKAGE" "ARCH" "VERSION" "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR" "SNAPSHOT_DIRS" "CONFIG_DIR" "BOADRSMANAGER_URL"
+    required_variables "ARDUINO_CMD" "PACKAGE" "ARCH" "VERSION" "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR" "SNAPSHOT_DIRS" "CONFIG_DIR" "BOARDSMANAGER_URL"
 
     map.set PARAMS[configDir][name] "config-dir"
     map.set PARAMS[configDir][description] "arduino config directory"
@@ -27,7 +27,7 @@ run() {
     }
 
     ${ARDUINO_CMD} --install-boards ${PACKAGE}:${ARCH}:${VERSION} \
-      --pref boardsmanager.additional.urls="${BOADRSMANAGER_URL}" \
+      --pref boardsmanager.additional.urls="${BOARDSMANAGER_URL}" \
       --pref settings.path="${arduino_config_tmp_dir}"
 
     check_required_packages "${arduino_config_tmp_dir}" || die_clean

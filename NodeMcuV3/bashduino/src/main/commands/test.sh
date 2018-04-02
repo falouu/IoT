@@ -269,5 +269,16 @@ run() {
         log "End of Indented\n"
     }
 
+    test_get_preferences() {
+        import "bashduino/preferences/get_preferences" as "get_preferences"
+
+        declare -A prefs
+        get_preferences prefs
+
+        for pref in "${!prefs[@]}"; do
+            printf "pref: '%s'='%s'\n" "${pref}" "${prefs[${pref}]}"
+        done
+    }
+
     run_tests
 }
