@@ -123,6 +123,11 @@ _execute_command() {
     require "$1"
     local command="$1"
     _setup_command "${command}"
+    if [[ "${ARGS[help]}" == "true" ]]; then
+        run_command "help" "--command" "${command}"
+        return
+    fi
+
     run
     [[ "$?" == "${ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]}" ]] && {
         die "run() method not defined for command '${command}'" "SYSTEM/COMMAND_NOT_FOUND"
@@ -151,6 +156,10 @@ _setup_command() {
     [[ "$?" == "${ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]}" ]] && {
         die "setup() method not defined for command '${command}'" "SYSTEM/COMMAND_NOT_FOUND"
     }
+
+    map.set PARAMS[help][name] "help"
+    map.set PARAMS[help][description] "show help for command"
+    map.set PARAMS[help][required] "false"
 
     declare -A PARAM_BY_NAME
     get_param_names

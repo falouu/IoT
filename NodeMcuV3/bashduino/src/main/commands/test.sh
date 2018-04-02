@@ -177,5 +177,53 @@ run() {
 
     }
 
+    test_table_print() {
+
+        map.set TABLE[header][id] "ID"
+        map.set TABLE[header][name] "Nazwa"
+        map.set TABLE[header][price] "Cena"
+
+        map.set TABLE[items][0][id] "55"
+        map.set TABLE[items][0][name] "Korniszony lubelskie"
+        map.set TABLE[items][0][price] "12 zł"
+
+        map.set TABLE[items][1][id] "254"
+        map.set TABLE[items][1][name] "Persil"
+        map.set TABLE[items][1][price] "999 zł"
+
+        table.print TABLE
+    }
+
+    test_repeat() {
+        echo
+        repeat "#" 10
+        echo
+        repeat "nie jestem szalony! " 5
+    }
+
+    test_remove_array_first() {
+        local arr=( "one" "two" "three")
+        array_remove_first "two" "arr"
+        declare -p arr
+        array_remove_first "one" "arr"
+        declare -p arr
+        arr+=( "duck duck" "minus one" "duck duck" )
+        declare -p arr
+        array_remove_first "duck duck" "arr"
+        declare -p arr
+        array_remove_first "duck duck" "arr"
+        declare -p arr
+        array_remove_first "duck duck" "arr"
+        declare -p arr
+        array_remove_first "three" "arr"
+        declare -p arr
+        array_remove_first "one" "arr"
+        declare -p arr
+        array_remove_first "minus one" "arr"
+        declare -p arr
+        array_remove_first "minus one" "arr"
+        declare -p arr
+    }
+
     run_tests
 }

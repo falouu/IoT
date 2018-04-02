@@ -105,7 +105,24 @@ require() {
   [[ -z "${value}" ]] && die "${message}" "COMMON/MISSING_PARAM"
 }
 
-declare -A MAPS
+# Params:
+#   $1 | value to remove
+#   $2 | array variable name
+array_remove_first() {
+    require "$1"
+    require "$2"
+    local target="$1"
+    local array_var="$2"
+    local -n array_remove_first_arr="${array_var}"
+
+    for i in "${!array_remove_first_arr[@]}"; do
+        if [[ "${array_remove_first_arr[$i]}" == "${target}" ]]; then
+          unset "array_remove_first_arr[$i]"
+          return
+        fi
+    done
+}
+
 # Exit policy:
 #   die, if invalid format
 map._get_segments() {
@@ -123,7 +140,7 @@ map._get_segments() {
         local index_segment="${BASH_REMATCH[3]}"
         split_by "][" "${index_segment}"
         for index in "${RETURN_VALUE[@]}"; do
-            [[ "$index" =~ ^[a-zA-Z_][a-zA-Z0-9]*$ ]] || {
+            [[ "$index" =~ ^[a-zA-Z0-9]+$ ]] || {
                 die "invalid map index: '${index}'" "GENERAL/SYNTAX_ERROR"
             }
             result+=( "${index}" )
@@ -151,9 +168,9 @@ map.get() {
         RETURN_VALUE=""
         return 2
     }
-    [[ "$(declare -p ${var_name})" =~ "declare -A" ]] && {
+    [[ "$(declare -p ${var_name})" =~ "declare -a" ]] && {
         local -n ref="${var_name}"
-        RETURN_VALUE=( "${!ref[@]}" )
+        RETURN_VALUE=( "${ref[@]}" )
         return 1
     }
     RETURN_VALUE="${!var_name}"
@@ -171,11 +188,12 @@ map.set() {
     local parent="map_${segments[0]}"
     for segment in "${segments[@]:1}"; do
         [[ -v "${parent}" ]] || {
-            #debug "declaring ${parent}"
-            declare -g -A "${parent}"
+            declare -g -a "${parent}"
         }
-        #debug "${parent}+=( \"${segment}\" )"
-        eval "${parent}[\"${segment}\"]=\"DEFINED\""
+        local -n parent_ref="${parent}"
+        containsElement "${segment}" "${parent_ref[@]}" || {
+            parent_ref+=( "${segment}" )
+        }
         parent="${parent}_${segment}"
     done
 
@@ -224,7 +242,7 @@ map.get_keys_or_die() {
 
     map.get "$1"
     local status="$?"
-    [[ "${status}" == "1" ]] || {
+    [[ "${status}" != "1" ]] || {
         die "Expected inner map value for map key: '${statement}'. Found something else!" "GENERAL/INVALID_VALUE_TYPE"
     }
 }
@@ -247,6 +265,22 @@ map.get_keys_or_empty() {
     [[ "${status}" == "2" ]] && {
         RETURN_VALUE=()
     }
+}
+
+# Returns:
+#   0  is map
+#   1  is not map
+map.is_map() {
+    require "$1"
+    local statement="$1"
+
+    map.get "$1"
+    local status="$?"
+    if [[ "${status}" == "1" ]]; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 # Params:
@@ -275,7 +309,8 @@ map.unset() {
     map._get_var_name_of_segments "${parent_segments[@]}"
     local parent_var_name="${RETURN_VALUE}"
 
-    eval "unset ${parent_var_name}[\"${last_segment}\"]"
+    array_remove_first "${last_segment}" "${parent_var_name}"
+
     local -n pointer="${parent_var_name}"
     if [[ "${#pointer[@]}" == "0" ]]; then
         map._get_statement_from_segments "${parent_segments[@]}"
@@ -367,17 +402,102 @@ import() {
 #   run command on new shell
 #
 # Params:
-#   $1  command
+#   $1 | command
+#   $@ | params
 #
 # Returns:
 #   command status code
 run_command() {
     require "$1"
     local command="$1"
-    ${ROOT_DIR}/run.sh "${command}"
+    shift
+    ${ROOT_DIR}/run.sh "${command}" "$@"
     return $?
 }
 
+
+table.print() {
+    require "$1"
+    local table_var="$1"
+    local primary_row
+    local items_keys
+    local items_count
+    local columns
+    local header=false
+    local vertical_delimiter="|"
+
+    map.get_keys_or_empty "${table_var}[items]"
+    items_keys=( "${RETURN_VALUE}" )
+    items_count="${#items_keys[@]}"
+
+    if map.is_map "${table_var}[header]"; then
+        header=true
+    fi
+
+    if [[ "${header}" == "true" ]]; then
+        primary_row="[header]"
+    else
+        [[ "$items_count" == "0" ]] && {
+            return
+        }
+        primary_row="[items][${items_keys[0]}]"
+    fi
+
+    declare -A columns_lengths
+
+    map.get_keys_or_die "${table_var}${primary_row}"
+    columns=( "${RETURN_VALUE}" )
+
+    for column in "${columns[@]}"; do
+        map.get_value_or_empty "${table_var}${primary_row}[${column}]"
+        local max_length="${#RETURN_VALUE}"
+
+        for item in "${items_keys[@]}"; do
+            map.get_value_or_empty "${table_var}[items][${item}][${column}]"
+            local length="${#RETURN_VALUE}"
+            if (( $length > $max_length )); then
+                max_length="${length}"
+            fi
+        done
+
+        columns_lengths[${column}]="${max_length}"
+    done
+
+    if [[ "${header}" == "true" ]]; then
+        for column in "${columns[@]}"; do
+            map.get_value_or_empty "${table_var}[header][${column}]"
+            local value="${RETURN_VALUE}"
+            local value_length="${#value}"
+            local column_length="${columns_lengths[${column}]}"
+            local spaces_count="$(( ${column_length} - ${value_length} ))"
+            printf "${value}"
+            repeat " " ${spaces_count}
+            printf "${vertical_delimiter}"
+        done
+    fi
+
+
+}
+
+table._print_row() {
+    return
+}
+
+# Params:
+#   $1 | string to repeat
+#   $2 | repeat count
+# Output:
+#   repeated string
+repeat() {
+    require "$1"
+    require "$2"
+    local str="$1"
+    local count="$2"
+    while (( $count > 0 )); do
+        printf "${str}"
+        (( count-- ))
+    done
+}
 
 ################### <ERROR CODES> #######################################
 declare -A ERROR_CODES
