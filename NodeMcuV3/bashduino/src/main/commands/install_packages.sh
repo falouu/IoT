@@ -41,6 +41,8 @@ run() {
 
     create_snapshot_if_required
 
+    mkdir -p "${CONFIG_DIR}"
+
     for snapshot_dir in "${SNAPSHOT_DIRS[@]}"; do
         local snapshot_dir_abs="${CONFIG_DIR}/${snapshot_dir}"
         [[ -d "${snapshot_dir_abs}" ]] || {

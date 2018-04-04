@@ -18,7 +18,8 @@ local name_pattern="[a-zA-Z][a-zA-Z0-9_]*"
 local pref_line_pattern="^[[:space:]]*(${name_pattern})=(.+)$"
 
 [[ -f "${target_file}" ]] || {
-    die "Target preferences file doesn't exists or is not file! (${target_file})" "COMMON/FILE_NOT_FOUND"
+    log "Preferences file not found, creating one (${target_file})"
+    touch "${target_file}"
 }
 
 declare -A existing_prefs
