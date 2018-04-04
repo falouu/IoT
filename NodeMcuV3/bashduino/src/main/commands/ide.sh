@@ -6,6 +6,12 @@
 #   PARAMS | map | define params for command
 setup() {
     required_variables "PORT" "ARDUINO_CMD"
+
+    map.set PARAMS[sketch][name] "sketch"
+    map.set PARAMS[sketch][description] "sketch to run"
+    map.set PARAMS[sketch][defaultDescription] "default sketch, defined by DEFAULT_SKETCH variable in project config"
+    map.set PARAMS[sketch][required] "false"
+    map.set PARAMS[sketch][valuePlaceholder] "sketch module name"
 }
 
 # Input variables
@@ -13,6 +19,16 @@ setup() {
 run() {
     import "bashduino/preferences/get_preferences" as "get_preferences"
     import "bashduino/preferences/apply_preferences" as "apply_preferences"
+    import "bashduino/sketches/get_sketch_file" as "get_sketch_file"
+
+    local sketch="${DEFAULT_SKETCH}"
+    [[ "${ARGS[sketch]}" ]] && {
+        sketch="${ARGS[sketch]}"
+    }
+    require "${sketch}" "Select sketch to run or define default sketch in configuration (run with --help option for more info)"
+
+    get_sketch_file "${sketch}"
+    local sketch_file="${RETURN_VALUE}"
 
     if [[ ! -e "${PORT}" ]]; then
         die "'${PORT}' file does not exists" "IDE/PORT_NOT_EXISTS"
@@ -61,11 +77,15 @@ run() {
     get_preferences prefs
 
     prefs["boardsmanager.additional.urls"]="${BOARDSMANAGER_URL}"
+    prefs["serial.port"]="${PORT}"
+    # serial.port.file=ttyUSB0
+    # serial.port.iserial=null
 
     apply_preferences prefs
     unset prefs
 
-    ${ARDUINO_CMD}
+    log "Running module '${sketch}'"
+    ${ARDUINO_CMD} "${sketch_file}"
 }
 
 #update_config_dir_from_snapshot() {
