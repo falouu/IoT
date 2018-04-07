@@ -19,6 +19,7 @@ setup() {
 #   ARGS | map | arguments values
 run() {
     import "bashduino/packages/check_required_packages" as "check_required_packages"
+    import "bashduino/indexes/get_required_indexes" as "get_required_indexes"
 
     arduino_config_tmp_dir="$(mktemp -d)"
     debug "Downloading packages to temporary directory: '${arduino_config_tmp_dir}'..."
@@ -34,14 +35,18 @@ run() {
 
     check_required_packages "${arduino_config_tmp_dir}" || die_clean
 
+    check_snapshot_dir() {
+        [[ -d "${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}" ]] \
+          || die "Arduino packages snapshot dir (${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}) doesn't exists!" \
+                 "SCRIPTS/CREATE_SNAPSHOT_ARDUINO_IDE_CONFIG/MISSING_SNAPSHOTS_DIR"
+    }
+
     archive_package() {
         local package_dir target_dir
         require "$1"
         package_dir="$1"
 
-        [[ -d "${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}" ]] \
-          || die "Arduino packages snapshot dir (${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}) doesn't exists!" \
-                 "SCRIPTS/CREATE_SNAPSHOT_ARDUINO_IDE_CONFIG/MISSING_SNAPSHOTS_DIR"
+        check_snapshot_dir
 
         target_dir="${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}/${package_dir}"
         mkdir -p "${target_dir}" || die_clean
@@ -56,10 +61,28 @@ run() {
         popd
     }
 
+    archive_indexes() {
+        check_snapshot_dir
+        local target_dir="${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}"
+
+        get_required_indexes
+        local required_indexes=( "${RETURN_VALUE[@]}" )
+
+        pushd "${arduino_config_tmp_dir}"
+        for index in "${required_indexes[@]}"; do
+            log "Creating snapshot of index '${index}'..."
+            cp "${index}" "${target_dir}" || die_clean
+        done
+        popd
+    }
+
     for snapshot_dir in "${SNAPSHOT_DIRS[@]}"; do
         log "Creating snapshot of dir '${snapshot_dir}'..."
         archive_package "${snapshot_dir}"
     done
+
+    log "Creating snapshot of indexes..."
+    archive_indexes
 
     rm -rf "${arduino_config_tmp_dir}"
 

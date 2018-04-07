@@ -10,6 +10,7 @@
 #   die, if checks fails
 #
 required_variables "SNAPSHOT_DIRS" "CONFIG_DIR"
+import "bashduino/indexes/check_required_indexes" as "check_required_indexes"
 
 local config_dir="${CONFIG_DIR}"
 [[ -z "$1" ]] || config_dir="$1"
@@ -21,3 +22,8 @@ for snapshot_dir in "${SNAPSHOT_DIRS[@]}"; do
 		die "Required directory '${snapshot_dir_abs}' doesn't exists after installing board" "SCRIPTS/CREATE_SNAPSHOT_ARDUINO_IDE_CONFIG/MISSING_PACKAGE_DIR"
 	}
 done
+
+check_required_indexes "${config_dir}"
+success || {
+    die "Package index file does not exists after installing board!" "COMMON/FILE_NOT_FOUND"
+}

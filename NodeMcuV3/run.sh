@@ -2,7 +2,7 @@
 # bash 4.3 required
 #
 # required system commands:
-#   tar, mv
+#   tar, mv, cp
 #
 # Tested on Arduino 1.8.5
 

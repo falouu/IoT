@@ -12,6 +12,7 @@ setup() {
 #   ARGS | map | arguments values
 run() {
     import "bashduino/snapshots/check_required_snapshots" as "check_required_snapshots"
+    import "bashduino/indexes/get_required_indexes" as "get_required_indexes"
 
     create_snapshot_if_required() {
         check_required_snapshots
@@ -38,6 +39,21 @@ run() {
         success || die "unpacking failed" "INSTALL_PACKAGES/UNPACK_FAILED"
     }
 
+    install_indexes() {
+        get_required_indexes
+        local required_indexes=( "${RETURN_VALUE[@]}" )
+
+        for index in "${required_indexes[@]}"; do
+            log "Copying package index '${index}' from snapshots..."
+
+            local snapshot_dir_index="${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}/${index}"
+            [[ -f "${snapshot_dir_index}" ]] || {
+                die "Snapshot index '${index}' does not exists!" "INSTALL_PACKAGES/NO_SNAPSHOT_FILE"
+            }
+            cp "${snapshot_dir_index}" "${CONFIG_DIR}" || die
+        done
+
+    }
 
     create_snapshot_if_required
 
@@ -50,6 +66,8 @@ run() {
             install_package "${snapshot_dir}"
         }
     done
+
+    install_indexes
 
     log "All packages installed"
 }

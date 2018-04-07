@@ -125,3 +125,7 @@ run() {
 # custom_Debug=nodemcuv2_Disabled
 # custom_DebugLevel=nodemcuv2_None____
 
+## Needed files
+### package_esp8266com_index.json
+## Need to refresh packages (package_index.json) and libraries (library_index.json)
+### but these files aren't changed by installing additional packages, so no need to modify them
