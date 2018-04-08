@@ -33,6 +33,8 @@ unsigned long lastConnectTry = 0;
 /** Current WLAN status */
 unsigned int status = WL_IDLE_STATUS;
 
+unsigned int softAPClientsNumber = 0;
+
 void handleRoot() {
   server.send(200, "text/plain", "hello from esp8266!");
 }
@@ -69,12 +71,7 @@ void setup() {
   connect = strlen(ssid) > 0; // Request WLAN connect if there is a SSID
 }
 
-void connectWifi() {
-  Serial.println("Connecting as wifi client...");
-  WiFi.disconnect();
-  WiFi.begin(ssid, password);
-  int connStatus = WiFi.waitForConnectResult();
-  Serial.print("connection status: ");
+void printWifiStatus(int connStatus) {
   switch (connStatus) {
     case WL_IDLE_STATUS:
       Serial.println("WL_IDLE_STATUS");
@@ -98,12 +95,20 @@ void connectWifi() {
       Serial.println("WL_DISCONNECTED");
       break;
   }
-  
+}
+
+void connectWifi() {
+  Serial.println("Connecting as wifi client...");
+  WiFi.disconnect();
+  WiFi.begin(ssid, password);
+  int connStatus = WiFi.waitForConnectResult();
+  Serial.print("connection status: ");
+  printWifiStatus(connStatus);
 }
 
 void loop() {
   if (connect) {
-    Serial.println("Connect requested");
+    Serial.println("WiFi connect attempt");
     connect = false;
     connectWifi();
     lastConnectTry = millis();
@@ -116,8 +121,8 @@ void loop() {
       connect = true;
     }
     if (status != s) { // WLAN status change
-      Serial.print("Status: ");
-      Serial.println(s);
+      Serial.print("WiFi status changed to: ");
+      printWifiStatus(s);
       status = s;
       if (s == WL_CONNECTED) {
         /* Just connected to WLAN */
@@ -132,6 +137,16 @@ void loop() {
         WiFi.disconnect();
       }
     }
+  }
+
+  unsigned int currentSoftAPClients = WiFi.softAPgetStationNum();
+  if (currentSoftAPClients != softAPClientsNumber) {
+    if (currentSoftAPClients > softAPClientsNumber) {
+      Serial.printf("New client connected to soft-AP. Current clients number: %d\n", currentSoftAPClients);
+    } else {
+      Serial.printf("Client disconnected from soft-AP. Current clients number: %d\n", currentSoftAPClients);
+    }
+    softAPClientsNumber = currentSoftAPClients;
   }
   // Do work:
   //DNS
