@@ -36,7 +36,28 @@ unsigned int status = WL_IDLE_STATUS;
 unsigned int softAPClientsNumber = 0;
 
 void handleRoot() {
-  server.send(200, "text/plain", "hello from esp8266!");
+  Serial.println("Request for page");
+  String html = ""
+    "<!DOCTYPE html>"
+    "<html lang=\"en\">"
+    "<head>"
+      "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />"
+      "<meta charset=\"utf-8\">"
+      "<title>ESP8266 Portal</title>"
+    "</head>"
+    "<body>"
+      "<h1>Welcome!</h1>"
+      "<h2>WiFi setup</h2>"
+      "<form action=\"/connect\" method=\"post\">"
+        "<label for=\"input_ssid\">SSID: </label>"
+        "<input name=\"ssid\" type=\"text\" id=\"input_ssid\" required />"
+        "<label for=\"input_password\">Password: </label>"
+        "<input name=\"password\" type=\"password\" id=\"input_password\" />"
+        "<input type=\"submit\" value=\"Connect\" />"
+      "</form>"
+    "</body>"
+    "</html>";
+  server.send(200, "text/html", html);
 }
 
 void setup() {
@@ -58,10 +79,10 @@ void setup() {
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(DNS_PORT, "*", apIP);
 
-  server.on("/", handleRoot);
+  //server.on("/", handleRoot);
 //  server.on("/wifi", handleWifi);
 //  server.on("/wifisave", handleWifiSave);
-//  server.onNotFound(handleNotFound);
+  server.onNotFound(handleRoot);
 
   server.begin(); // Web server start
   Serial.println("HTTP server started");
