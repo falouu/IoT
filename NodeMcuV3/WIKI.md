@@ -1,5 +1,6 @@
 # NodeMcu V3 Wiki
 
+
 ## esp8266
 
 ### Vocabulary
@@ -13,6 +14,20 @@
 * Spec: https://github.com/esp8266/Arduino/blob/master/doc/
 * Utils:
 	* Flash config checker: https://github.com/esp8266/Arduino/blob/master/libraries/esp8266/examples/CheckFlashConfig/CheckFlashConfig.ino
+
+
+
+## Arduino
+
+### Configuration
+* preferences and packages localization: `~/.arduino15`
+
+### Links
+
+* Language reference: https://www.arduino.cc/reference/en/
+* More technical reference: https://github.com/arduino/Arduino/wiki
+
+
 
 ## esp8266 platform on Arduino IDE
 
@@ -31,12 +46,26 @@
 
 Sources for API are defined in: https://github.com/esp8266/Arduino/blob/master/cores/esp8266/ 
 
-For example signature of function `digitalWrite` is here: https://github.com/esp8266/Arduino/blob/master/cores/esp8266/core_esp8266_wiring_digital.c
+examples:
+* signature of function `digitalWrite` is here: https://github.com/esp8266/Arduino/blob/master/cores/esp8266/core_esp8266_wiring_digital.c
+* api of `Print` class (inherited by many other classes, like `Serial`): https://github.com/esp8266/Arduino/blob/master/cores/esp8266/Print.h
 
 
-## Arduino
+### Code Examples
 
-* preferences and packages localization: `~/.arduino15`
+* Connecting to WiFi by WPS:
+  * https://gist.github.com/copa2/fcc718c6549721c210d614a325271389
+  * https://github.com/esp8266/Arduino/issues/1958
+* Captive Portal
+  * another option to setup WiFi credentials - first, ESP will get into
+    AP mode. You can connect to its temporary network from other device, set
+    a target network credentials. Then ESP will get into client mode
+    and connect to the target network
+  * https://github.com/esp8266/Arduino/blob/master/libraries/DNSServer/examples/CaptivePortal/CaptivePortal.ino
+  * https://github.com/esp8266/Arduino/blob/master/libraries/DNSServer/examples/CaptivePortalAdvanced/CaptivePortalAdvanced.ino
+
+
+
 
 ## NodeMcu V3 with Arduino IDE
 

@@ -9,3 +9,5 @@ custom_FlashErase=nodemcuv2_none
 custom_FlashSize=nodemcuv2_4M1M
 custom_LwIPVariant=nodemcuv2_v2mss536
 custom_UploadSpeed=nodemcuv2_115200
+
+serial.debug_rate=115200
