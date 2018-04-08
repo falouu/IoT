@@ -11,11 +11,6 @@
 
 ### Links
 
-* Spec: https://github.com/esp8266/Arduino/blob/master/doc/
-* Utils:
-	* Flash config checker: https://github.com/esp8266/Arduino/blob/master/libraries/esp8266/examples/CheckFlashConfig/CheckFlashConfig.ino
-
-
 
 ## Arduino
 
@@ -42,6 +37,10 @@
 	  #define LED_BUILTIN 2
 	  ```
 
+### Docs
+
+* Main docs: https://github.com/esp8266/Arduino/tree/master/doc
+
 ### Sources
 
 Sources for API are defined in: https://github.com/esp8266/Arduino/blob/master/cores/esp8266/ 
@@ -63,6 +62,10 @@ examples:
     and connect to the target network
   * https://github.com/esp8266/Arduino/blob/master/libraries/DNSServer/examples/CaptivePortal/CaptivePortal.ino
   * https://github.com/esp8266/Arduino/blob/master/libraries/DNSServer/examples/CaptivePortalAdvanced/CaptivePortalAdvanced.ino
+
+### Utils
+
+* Flash config checker: https://github.com/esp8266/Arduino/blob/master/libraries/esp8266/examples/CheckFlashConfig/CheckFlashConfig.ino
 
 
 

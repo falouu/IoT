@@ -73,9 +73,32 @@ void connectWifi() {
   Serial.println("Connecting as wifi client...");
   WiFi.disconnect();
   WiFi.begin(ssid, password);
-  int connRes = WiFi.waitForConnectResult();
-  Serial.print("connRes: ");
-  Serial.println(connRes);
+  int connStatus = WiFi.waitForConnectResult();
+  Serial.print("connection status: ");
+  switch (connStatus) {
+    case WL_IDLE_STATUS:
+      Serial.println("WL_IDLE_STATUS");
+      break;
+    case WL_NO_SSID_AVAIL:
+      Serial.println("WL_NO_SSID_AVAIL");
+      break;
+    case WL_SCAN_COMPLETED:
+      Serial.println("WL_SCAN_COMPLETED");
+      break;
+    case WL_CONNECTED:
+      Serial.println("WL_CONNECTED");
+      break;
+    case WL_CONNECT_FAILED:
+      Serial.println("WL_CONNECT_FAILED");
+      break;
+    case WL_CONNECTION_LOST:
+      Serial.println("WL_CONNECTION_LOST");
+      break;
+    case WL_DISCONNECTED:
+      Serial.println("WL_DISCONNECTED");
+      break;
+  }
+  
 }
 
 void loop() {
