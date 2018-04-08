@@ -12,80 +12,119 @@ setup() {
     map.set PARAMS[sketch][defaultDescription] "default sketch, defined by DEFAULT_SKETCH variable in project config"
     map.set PARAMS[sketch][required] "false"
     map.set PARAMS[sketch][valuePlaceholder] "sketch module name"
+
+    map.set PARAMS[list][name] "sketch-list"
+    map.set PARAMS[list][description] "list all available sketches"
+    map.set PARAMS[list][required] "false"
 }
 
 # Input variables
 #   ARGS | map | arguments values
 run() {
-    import "bashduino/preferences/get_preferences" as "get_preferences"
-    import "bashduino/preferences/apply_preferences" as "apply_preferences"
-    import "bashduino/sketches/get_sketch_file" as "get_sketch_file"
+    ide_command_run_sketch() {
+        import "bashduino/preferences/get_preferences" as "get_preferences"
+        import "bashduino/preferences/apply_preferences" as "apply_preferences"
+        import "bashduino/sketches/get_sketch_file" as "get_sketch_file"
 
-    local sketch="${DEFAULT_SKETCH}"
-    [[ "${ARGS[sketch]}" ]] && {
-        sketch="${ARGS[sketch]}"
-    }
-    require "${sketch}" "Select sketch to run or define default sketch in configuration (run with --help option for more info)"
+        local sketch="${DEFAULT_SKETCH}"
+        [[ "$1" ]] && {
+            sketch="${1}"
+        }
+        require "${sketch}" "Select sketch to run or define default sketch in configuration (run with --help option for more info)"
 
-    get_sketch_file "${sketch}"
-    local sketch_file="${RETURN_VALUE}"
+        get_sketch_file "${sketch}"
+        local sketch_file="${RETURN_VALUE}"
 
-    if [[ ! -e "${PORT}" ]]; then
-        die "'${PORT}' file does not exists" "IDE/PORT_NOT_EXISTS"
-    fi
+        if [[ ! -e "${PORT}" ]]; then
+            die "'${PORT}' file does not exists" "IDE/PORT_NOT_EXISTS"
+        fi
 
-    if [[ ! -c "${PORT}" ]]; then
-        die "'${PORT}' file is not a device!" "IDE/PORT_NOT_DEVICE"
-    fi
+        if [[ ! -c "${PORT}" ]]; then
+            die "'${PORT}' file is not a device!" "IDE/PORT_NOT_DEVICE"
+        fi
 
-    local PORT_FILE_OWNER_GROUP=$(stat --format %g "${PORT}")
+        local PORT_FILE_OWNER_GROUP=$(stat --format %g "${PORT}")
 
-    local PORT_FILE_OWNER_GROUP_NAME=$(getent group ${PORT_FILE_OWNER_GROUP} | cut -f1 -d':')
+        local PORT_FILE_OWNER_GROUP_NAME=$(getent group ${PORT_FILE_OWNER_GROUP} | cut -f1 -d':')
 
-    echo "'${PORT}' file is owned by group '${PORT_FILE_OWNER_GROUP_NAME}'"
+        echo "'${PORT}' file is owned by group '${PORT_FILE_OWNER_GROUP_NAME}'"
 
 
-    if [[ ! -w "${PORT}" ]]; then
-        id -G "$USER" | grep -qw "${PORT_FILE_OWNER_GROUP}"
-        success || {
-            log "Current user (${USER}) does not belong to group '${PORT_FILE_OWNER_GROUP_NAME}', so the user can't access the file"
-            echo "Do you want to add user '${USER}' to group '${PORT_FILE_OWNER_GROUP_NAME}'?"
-            yes_or_no || die "No is no" 4
-
-            sudo usermod -a -G "${PORT_FILE_OWNER_GROUP_NAME}" "${USER}"
+        if [[ ! -w "${PORT}" ]]; then
+            id -G "$USER" | grep -qw "${PORT_FILE_OWNER_GROUP}"
             success || {
-                die "Cannot add user '${USER}' to group '${PORT_FILE_OWNER_GROUP_NAME}'" 5
+                log "Current user (${USER}) does not belong to group '${PORT_FILE_OWNER_GROUP_NAME}', so the user can't access the file"
+                echo "Do you want to add user '${USER}' to group '${PORT_FILE_OWNER_GROUP_NAME}'?"
+                yes_or_no || die "No is no" 4
+
+                sudo usermod -a -G "${PORT_FILE_OWNER_GROUP_NAME}" "${USER}"
+                success || {
+                    die "Cannot add user '${USER}' to group '${PORT_FILE_OWNER_GROUP_NAME}'" 5
+                }
+
+                log "You have to logout and login to get the group permissions!"
+                exit 0
             }
 
-            log "You have to logout and login to get the group permissions!"
-            exit 0
+
+            die "'${PORT}' file is not writable by current user!" 3
+        else
+            log "Checking permissions... OK"
+        fi
+
+        run_command "install_packages"
+        success || {
+            die "Installing packages FAILED"
         }
 
+        unset prefs
+        declare -A prefs
+        get_preferences prefs
 
-        die "'${PORT}' file is not writable by current user!" 3
-    else
-        log "Checking permissions... OK"
-    fi
+        prefs["boardsmanager.additional.urls"]="${BOARDSMANAGER_URL}"
+        prefs["serial.port"]="${PORT}"
+        # serial.port.file=ttyUSB0
+        # serial.port.iserial=null
 
-    run_command "install_packages"
-    success || {
-        die "Installing packages FAILED"
+        apply_preferences prefs
+        unset prefs
+
+        log "Running module '${sketch}'"
+        ${ARDUINO_CMD} "${sketch_file}"
     }
 
-    unset prefs
-    declare -A prefs
-    get_preferences prefs
+    ide_command_list_sketches() {
+        import "bashduino/sketches/get_sketches" as "get_sketches"
+        get_sketches
+        local sketches=( "${RETURN_VALUE[@]}" )
+        if [[ "${#sketches[@]}" == "0" ]]; then
+            errcho "not found any sketches!"
+            return "${ERROR_CODES["COMMON/FILE_NOT_FOUND"]}"
+        fi
+        for sketch in "${sketches[@]}"; do
+            printf "%s\n" "${sketch}"
+        done
+    }
 
-    prefs["boardsmanager.additional.urls"]="${BOARDSMANAGER_URL}"
-    prefs["serial.port"]="${PORT}"
-    # serial.port.file=ttyUSB0
-    # serial.port.iserial=null
 
-    apply_preferences prefs
-    unset prefs
+    local list_sketches="${ARGS[list]}"
+    local sketch="${ARGS[sketch]}"
 
-    log "Running module '${sketch}'"
-    ${ARDUINO_CMD} "${sketch_file}"
+    if [[ "${list_sketches}" ]] && [[ "${sketch}" ]]; then
+        die "Only one of the options: --sketch, --sketch-list is allowed" "COMMON/INVALID_OPTION_COMBINATION"
+    fi
+
+    if [[ "${list_sketches}" ]]; then
+        ide_command_list_sketches
+        return $?
+    fi
+
+    ide_command_run_sketch "${sketch}"
+    return $?
+
+
+
+
 }
 
 #update_config_dir_from_snapshot() {
