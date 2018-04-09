@@ -10,8 +10,8 @@ const char *softAP_ssid = "ESP_NODE_MCU";
 const char *softAP_password = "cm52gn3k";
 
 /* Don't set this wifi credentials. They are configurated at runtime and stored on EEPROM */
-char ssid[32] = "";
-char password[32] = "";
+String ssid = "";
+String password = "";
 
 // DNS server
 const byte DNS_PORT = 53;
@@ -35,8 +35,44 @@ unsigned int status = WL_IDLE_STATUS;
 
 unsigned int softAPClientsNumber = 0;
 
+void logRequest() {
+  Serial.print("Request for page: ");
+  switch(server.method()) {
+    case HTTP_GET:
+      Serial.print("GET ");
+      break;
+    case HTTP_POST:
+      Serial.print("POST ");
+      break;
+    default:
+      Serial.print("UNKNOWNK ");
+      break;
+  }
+  Serial.println(server.uri());
+}
+
+void handleConnect() {
+  logRequest();
+  for (uint8_t i = 0; i < server.args(); i++) {
+    String argName = server.argName(i);
+    String argValue = server.arg(i);
+    if (argName == "ssid") {
+      Serial.printf("Setting ssid to: '%s'\n", argValue.c_str());
+      ssid = argValue;
+    }
+    if (argName == "password") {
+      Serial.println("Setting wifi password");
+      password = argValue;
+    }
+  }
+  server.sendHeader("Location", "/");
+  server.send(303);
+  connect = true;
+  return;
+}
+
 void handleRoot() {
-  Serial.println("Request for page");
+  logRequest();
   String html = ""
     "<!DOCTYPE html>"
     "<html lang=\"en\">"
@@ -44,6 +80,11 @@ void handleRoot() {
       "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />"
       "<meta charset=\"utf-8\">"
       "<title>ESP8266 Portal</title>"
+      "<style>"
+        "input {"
+          "display: block;"
+        "}"
+      "</style>"
     "</head>"
     "<body>"
       "<h1>Welcome!</h1>"
@@ -79,9 +120,7 @@ void setup() {
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(DNS_PORT, "*", apIP);
 
-  //server.on("/", handleRoot);
-//  server.on("/wifi", handleWifi);
-//  server.on("/wifisave", handleWifiSave);
+  server.on("/connect", HTTP_POST, handleConnect);
   server.onNotFound(handleRoot);
 
   server.begin(); // Web server start
@@ -89,7 +128,7 @@ void setup() {
 
   //loadCredentials(); // TODO: Load WLAN credentials from network
   
-  connect = strlen(ssid) > 0; // Request WLAN connect if there is a SSID
+  connect = ssid.length() > 0; // Request WLAN connect if there is a SSID
 }
 
 void printWifiStatus(int connStatus) {
@@ -119,9 +158,13 @@ void printWifiStatus(int connStatus) {
 }
 
 void connectWifi() {
-  Serial.println("Connecting as wifi client...");
+  if (ssid.length() == 0) {
+    Serial.println("SSID not provided, skipping connect...");
+    return;
+  }
+  Serial.printf("Connecting to wifi network: '%s'\n", ssid.c_str());
   WiFi.disconnect();
-  WiFi.begin(ssid, password);
+  WiFi.begin(ssid.c_str(), password.c_str());
   int connStatus = WiFi.waitForConnectResult();
   Serial.print("connection status: ");
   printWifiStatus(connStatus);
@@ -136,7 +179,7 @@ void loop() {
   }
   {
     unsigned int s = WiFi.status();
-    if (s == 0 && millis() > (lastConnectTry + 60000)) {
+    if (s == WL_IDLE_STATUS && millis() > (lastConnectTry + 60000)) {
       /* If WLAN disconnected and idle try to connect */
       /* Don't set retry time too low as retry interfere the softAP operation */
       connect = true;
