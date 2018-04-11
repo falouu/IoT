@@ -65,15 +65,13 @@ void handleConnect() {
       password = argValue;
     }
   }
-  server.sendHeader("Location", "/");
+  server.sendHeader("Location", "/connecting");
   server.send(303);
-  connect = true;
   return;
 }
 
-void handleRoot() {
-  logRequest();
-  String html = ""
+String getPage(String content) {
+  const static String header = ""
     "<!DOCTYPE html>"
     "<html lang=\"en\">"
     "<head>"
@@ -86,20 +84,87 @@ void handleRoot() {
         "}"
       "</style>"
     "</head>"
-    "<body>"
-      "<h1>Welcome!</h1>"
-      "<h2>WiFi setup</h2>"
-      "<form action=\"/connect\" method=\"post\">"
-        "<label for=\"input_ssid\">SSID: </label>"
-        "<input name=\"ssid\" type=\"text\" id=\"input_ssid\" required />"
-        "<label for=\"input_password\">Password: </label>"
-        "<input name=\"password\" type=\"password\" id=\"input_password\" />"
-        "<input type=\"submit\" value=\"Connect\" />"
-      "</form>"
+    "<body>";
+  const static String footer = ""
     "</body>"
     "</html>";
-  server.send(200, "text/html", html);
+    
+  return header + content + footer;
 }
+
+void handleConnecting() {
+  logRequest();
+  const static String content = ""
+    "<script>"
+      ""
+    "</script>"
+    "<h1>Waiting for connection...</h1>";
+  connect = true;
+}
+
+void handleStatus() {
+  char buffer[30];
+  sprintf(buffer, "{\"wifi\":\"%s\"}", getWifiStatus().c_str());
+  server.send(200, "application/json", buffer);
+}
+
+void handleRoot() {
+  logRequest();
+  const static String content = ""
+    "<h1>Welcome!</h1>"
+    "<h2>WiFi setup</h2>"
+    "<form action=\"/connect\" method=\"post\">"
+      "<label for=\"input_ssid\">SSID: </label>"
+      "<input name=\"ssid\" type=\"text\" id=\"input_ssid\" required />"
+      "<label for=\"input_password\">Password: </label>"
+      "<input name=\"password\" type=\"password\" id=\"input_password\" />"
+      "<input type=\"submit\" value=\"Connect\" />"
+    "</form>";
+  server.send(200, "text/html", getPage(content));
+}
+
+String getWifiStatus() {
+  unsigned int connStatus = WiFi.status();
+  return getWifiStatusText(connStatus);
+}
+
+String getWifiStatusText(unsigned int connStatus) {
+  switch (connStatus) {
+    case WL_IDLE_STATUS:
+      return "WL_IDLE_STATUS";
+    case WL_NO_SSID_AVAIL:
+      return "WL_NO_SSID_AVAIL";
+    case WL_SCAN_COMPLETED:
+      return "WL_SCAN_COMPLETED";
+    case WL_CONNECTED:
+      return "WL_CONNECTED";
+    case WL_CONNECT_FAILED:
+      return "WL_CONNECT_FAILED";
+    case WL_CONNECTION_LOST:
+      return "WL_CONNECTION_LOST";
+    case WL_DISCONNECTED:
+      return "WL_DISCONNECTED";
+  }
+}
+
+void printWifiStatus(unsigned int connStatus) {
+  Serial.println(getWifiStatusText(connStatus));
+}
+
+void connectWifi() {
+  if (ssid.length() == 0) {
+    Serial.println("SSID not provided, skipping connect...");
+    return;
+  }
+  Serial.printf("Connecting to wifi network: '%s'\n", ssid.c_str());
+  WiFi.disconnect();
+  WiFi.begin(ssid.c_str(), password.c_str());
+  int connStatus = WiFi.waitForConnectResult();
+  Serial.print("connection status: ");
+  printWifiStatus(connStatus);
+}
+
+
 
 void setup() {
   delay(1000);
@@ -121,6 +186,8 @@ void setup() {
   dnsServer.start(DNS_PORT, "*", apIP);
 
   server.on("/connect", HTTP_POST, handleConnect);
+  server.on("/connecting", HTTP_GET, handleConnecting);
+  server.on("/status", HTTP_GET, handleStatus);
   server.onNotFound(handleRoot);
 
   server.begin(); // Web server start
@@ -129,45 +196,6 @@ void setup() {
   //loadCredentials(); // TODO: Load WLAN credentials from network
   
   connect = ssid.length() > 0; // Request WLAN connect if there is a SSID
-}
-
-void printWifiStatus(int connStatus) {
-  switch (connStatus) {
-    case WL_IDLE_STATUS:
-      Serial.println("WL_IDLE_STATUS");
-      break;
-    case WL_NO_SSID_AVAIL:
-      Serial.println("WL_NO_SSID_AVAIL");
-      break;
-    case WL_SCAN_COMPLETED:
-      Serial.println("WL_SCAN_COMPLETED");
-      break;
-    case WL_CONNECTED:
-      Serial.println("WL_CONNECTED");
-      break;
-    case WL_CONNECT_FAILED:
-      Serial.println("WL_CONNECT_FAILED");
-      break;
-    case WL_CONNECTION_LOST:
-      Serial.println("WL_CONNECTION_LOST");
-      break;
-    case WL_DISCONNECTED:
-      Serial.println("WL_DISCONNECTED");
-      break;
-  }
-}
-
-void connectWifi() {
-  if (ssid.length() == 0) {
-    Serial.println("SSID not provided, skipping connect...");
-    return;
-  }
-  Serial.printf("Connecting to wifi network: '%s'\n", ssid.c_str());
-  WiFi.disconnect();
-  WiFi.begin(ssid.c_str(), password.c_str());
-  int connStatus = WiFi.waitForConnectResult();
-  Serial.print("connection status: ");
-  printWifiStatus(connStatus);
 }
 
 void loop() {
