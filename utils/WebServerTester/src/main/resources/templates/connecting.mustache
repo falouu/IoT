@@ -1,0 +1,42 @@
+{{> header }}
+<h1>Waiting for connection...</h1>
+<p><span id="counter"></span> seconds...</p>
+<script>
+  var remainingSeconds = 60;
+
+  var fetchStatus = function() {
+    return fetch('/status', {
+      method: 'get'
+    })
+        .then(function(response) {
+          console.log('/status response');
+          return response.json();
+        })
+        .catch(function(err) {
+          console.log('/status error!');
+          console.log(err);
+        });
+
+  };
+
+  var tick = function() {
+    console.log('tick');
+    setCounter(remainingSeconds);
+
+    fetchStatus()
+        .then(function (status) {
+
+        });
+
+    remainingSeconds--;
+  };
+
+  var setCounter = function(val) {
+    document.getElementById('counter').innerText = val;
+  };
+
+  var ticker = setInterval(tick, 1000);
+
+  tick();
+</script>
+{{> footer }}
