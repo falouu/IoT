@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
+  <title>ESP8266 Portal</title>
+  <style>
+    input {
+      display: block;
+    }
+    .data-ssid {
+      font-weight: bold;
+    }
+    table {
+      border-collapse: collapse;
+    }
+    table td {
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>ESP8266 Admin</h1>
+  <form method="post">
+    <table>
+      <tr>
+        <th>variable</th>
+        <th>set value</th>
+        <th>current value</th>
+      </tr>
+      <tr>
+        <td><label for="wifiStatus">status: </label></td>
+        <td>
+          <select id="wifiStatus" name="wifiStatus">
+            {{> admin/blocks/wifiStatusOptions }}
+          </select>
+        </td>
+        <td>{{data.wifiStatus}}</td>
+      </tr>
+    </table>
+    <input type="submit" value="Apply"/>
+  </form>
+</body>
+</html>

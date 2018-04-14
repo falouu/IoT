@@ -1,20 +1,23 @@
 package pl.mfalkowski.NodeMCUtests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.server.HandlerFunction;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.Logger;
 import reactor.util.Loggers;
+import reactor.util.function.Tuple2;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
@@ -26,13 +29,33 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @SpringBootApplication
 public class NodeMcuTestsApplication {
 
-	private Logger logger = Loggers.getLogger(NodeMcuTestsApplication.class);
-	private State state = new State();
+	private final Logger logger = Loggers.getLogger(NodeMcuTestsApplication.class);
+	private final State state = new State();
+
+    enum WifiStatus {
+        WL_IDLE_STATUS,
+        WL_NO_SSID_AVAIL,
+        WL_SCAN_COMPLETED,
+        WL_CONNECTED,
+        WL_CONNECT_FAILED,
+        WL_CONNECTION_LOST,
+        WL_DISCONNECTED
+    }
+
+    static class AdminData {
+	    static class WifiStatusData {
+	        String value;
+	        boolean isCurrent;
+        }
+
+	    List<WifiStatusData> wifiStatuses;
+	    String wifiStatus;
+    }
 
     static class State {
 	    String ssid;
 	    String password;
-	    String status;
+	    String status = "";
     }
 
     static class Status {
@@ -61,7 +84,7 @@ public class NodeMcuTestsApplication {
 
 	private HandlerFunction<ServerResponse> connectHandler =
 		request ->
-			request.bodyToMono(new ParameterizedTypeReference<MultiValueMap<String, String>>() {})
+			request.formData()
                 .flatMap(body ->
                     Mono.just(body.getFirst("ssid"))
                         .filter(Objects::nonNull)
@@ -76,18 +99,41 @@ public class NodeMcuTestsApplication {
                 )
                 .then(ServerResponse.seeOther(URI.create("/connecting")).build());
 
+	private HandlerFunction<ServerResponse> adminGetHandler =
+        request ->
+            Mono.just(new AdminData())
+                .zipWith(
+                    Flux.fromArray(WifiStatus.values())
+                        .map(Enum::name)
+                        .flatMap(s -> Mono
+                            .just(new AdminData.WifiStatusData())
+                            .doOnNext(sd -> sd.value = s)
+                            .doOnNext(sd -> sd.isCurrent = (Objects.equals(s, state.status)))
+                        )
+                        .collectList()
+                )
+                .doOnNext(t -> t.getT1().wifiStatuses = t.getT2())
+                .map(Tuple2::getT1)
+                .doOnNext(data -> data.wifiStatus = state.status)
+                .map(data -> Collections.singletonMap("data", data))
+                .flatMap(model -> ServerResponse.ok().render("admin/admin", model));
+
+	private HandlerFunction<ServerResponse> adminPostHandler =
+        request ->
+            request.formData()
+                .doOnNext(form -> state.status = form.getFirst("wifiStatus"))
+                .then(ServerResponse.seeOther(URI.create("/admin")).build());
 
     @Bean
     RouterFunction<ServerResponse> routes()  {
 		return route(GET("/status"), statusHandler)
 			.and(
-				route(GET("/dupa"), request -> ServerResponse.ok().render("dupa"))
-			)
-			.and(
 				route(GET("/"), request -> ServerResponse.ok().render("root"))
 			)
             .and(route(GET("/connecting"), request -> ServerResponse.ok().render("connecting")))
-			.and(route(POST("/connect"), connectHandler));
+			.and(route(POST("/connect"), connectHandler))
+            .and(route(GET("/admin"), adminGetHandler))
+            .and(route(POST("/admin"), adminPostHandler));
     }
 
     @Bean
