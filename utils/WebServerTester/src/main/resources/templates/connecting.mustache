@@ -1,42 +1,76 @@
 {{> header }}
 <h1>Waiting for connection...</h1>
+<p>SSID: <span class="data-ssid"></span></p>
 <p><span id="counter"></span> seconds...</p>
+<p>Connection status: <span id="wifi-status"></span></p>
+<p id="connection-success" style="display: none">
+  Device successfully connected to network <span class="data-ssid"></span>.
+  Temporary network will shutdown any second soon! Disconnect from it and connect to <span class="data-ssid"></span> network.
+<p id="connection-failed" style="display: none">
+  Timed out waiting for connection!
+</p>
+
+</p>
 <script>
   var remainingSeconds = 60;
+  var status = null;
+  var ssid = null;
+  var timeout = false;
 
   var fetchStatus = function() {
     return fetch('/status', {
       method: 'get'
     })
         .then(function(response) {
-          console.log('/status response');
           return response.json();
         })
         .catch(function(err) {
-          console.log('/status error!');
           console.log(err);
         });
-
   };
 
-  var tick = function() {
-    console.log('tick');
-    setCounter(remainingSeconds);
+  var fetchStatusLoop = function() {
 
     fetchStatus()
         .then(function (status) {
+          this.status = status.wifi.status;
+          ssid = status.wifi.ssid;
 
+          document.getElementById('wifi-status').innerText = this.status;
+
+          [].forEach.call(document.getElementsByClassName('data-ssid'), function(el) { el.innerText = ssid; });
+
+          if (this.status !== 'WL_CONNECTED' && !timeout) {
+            setTimeout(fetchStatusLoop, 2000);
+          }
         });
+  };
 
-    remainingSeconds--;
+  var connectionFailed = function () {
+    document.getElementById('connection-failed').style.display = null;
+    timeout = true;
+  };
+
+  var tickCounter = function() {
+    if (remainingSeconds < 0) {
+      connectionFailed();
+      clearInterval(counterTicker);
+      return;
+    }
+    setCounter(remainingSeconds--);
+    if (this.status === 'WL_CONNECTED') {
+        document.getElementById('connection-success').style.display = null;
+        clearInterval(counterTicker);
+    }
   };
 
   var setCounter = function(val) {
     document.getElementById('counter').innerText = val;
   };
 
-  var ticker = setInterval(tick, 1000);
+  var counterTicker = setInterval(tickCounter, 1000);
 
-  tick();
+  tickCounter();
+  fetchStatusLoop();
 </script>
 {{> footer }}
