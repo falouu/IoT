@@ -5,9 +5,6 @@
   <meta charset="utf-8">
   <title>ESP8266 Portal</title>
   <style>
-    input {
-      display: block;
-    }
     .data-ssid {
       font-weight: bold;
     }
@@ -17,9 +14,22 @@
     table td {
       padding: 5px;
     }
+    textarea {
+      margin: 5px;
+      width: 95%;
+      height: 300px;
+    }
+    div.container {
+      display: inline-block;
+    }
+    #error {
+      color: red;
+    }
   </style>
 </head>
 <body>
+  <div id="error" style="display: none"></div>
+  <div class="container">
   <h1>ESP8266 Admin</h1>
   <form method="post">
     <table>
@@ -40,5 +50,60 @@
     </table>
     <input type="submit" value="Apply"/>
   </form>
+  <h2>Get template</h2>
+  <div>
+    <select id="get-template">
+      {{> admin/blocks/templatesOptions }}
+    </select>
+    <input id="get-template-submit" type="button" value="Get template"/>
+  </div>
+  <div>
+    <textarea id="template-content"></textarea>
+  </div>
+  </div>
+<script>
+
+  var error = function(message, err) {
+    console.log(message, err);
+    var container = document.getElementById('error');
+
+    container.innerText = message + ". Caused by: " + err;
+    container.style.display = null
+  };
+
+  var clearError = function () {
+    var container = document.getElementById('error');
+
+    container.innerText = "";
+    container.style.display = 'none'
+  };
+
+  var fetchTemplate = function(name) {
+    clearError();
+    return fetch('/admin/template?name=' + name, {
+        method: 'get'
+      })
+      .then(function(response) {
+        if(!response.ok) {
+            throw new Error('Invalid status code: ' + response.status)
+        }
+        return response.text();
+      })
+      .catch(function(err) {
+        error("Fetch template error!", err);
+        throw err;
+      });
+  };
+
+  document.getElementById('get-template-submit').onclick = function (ev) {
+    var select = document.getElementById('get-template');
+    var value = select[select.selectedIndex].value;
+    fetchTemplate(value)
+        .then(function (templateContent) {
+          document.getElementById('template-content').innerText = templateContent;
+        })
+  };
+
+</script>
 </body>
 </html>
