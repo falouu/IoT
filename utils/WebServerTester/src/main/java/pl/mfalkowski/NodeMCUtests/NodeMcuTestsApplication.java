@@ -13,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.web.reactive.function.server.HandlerFunction;
 import org.springframework.web.reactive.function.server.RouterFunction;
-import org.springframework.web.reactive.function.server.ServerRequestExtensionsKt;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -24,16 +23,14 @@ import reactor.util.function.Tuple2;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
 import static com.fasterxml.jackson.annotation.PropertyAccessor.FIELD;
@@ -177,9 +174,7 @@ public class NodeMcuTestsApplication {
     @Bean
     RouterFunction<ServerResponse> routes()  {
 		return route(GET("/status"), statusHandler)
-			.and(
-				route(GET("/"), request -> ServerResponse.ok().render("root"))
-			)
+			.and(route(GET("/"), request -> ServerResponse.ok().render("root")))
             .and(route(GET("/connecting"), request -> ServerResponse.ok().render("connecting")))
 			.and(route(POST("/connect"), connectHandler))
             .and(route(GET("/admin"), adminGetHandler))
@@ -194,7 +189,7 @@ public class NodeMcuTestsApplication {
 	}
 
 	private Flux<String> getTemplateNames() {
-        String suffix = mustacheProperties.getSuffix();
+        var suffix = mustacheProperties.getSuffix();
 
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         List<Resource> resources;
@@ -208,6 +203,8 @@ public class NodeMcuTestsApplication {
             .map(Resource::getFilename)
             .map(filename -> filename.substring(0, filename.lastIndexOf('.')));
     }
+
+    private static Pattern templateLinePattern = Pattern.compile("^(?<prefix>\\s*)(?<content>\\S.*)?$");
 
     private Mono<String> getTemplate(String template) {
 
@@ -224,6 +221,21 @@ public class NodeMcuTestsApplication {
             })
             .single()
             .flatMapMany(Flux::fromStream)
-            .collect(Collectors.joining("\n"));
+            .map(line -> line.replace("\\", "\\\\"))
+            .map(line -> line.replace("\"", "\\\""))
+            .map(line -> {
+                var matcher = templateLinePattern.matcher(line);
+                if (!matcher.matches()) {
+                    throw new RuntimeException(String.format("Something wrong with pattern. It doesn't match '%s'", line));
+                }
+                var prefix = matcher.group("prefix");
+                var content = matcher.group("content");
+                if (content == null || content.isEmpty()) {
+                    return "";
+                }
+                return prefix + "\"" + content + "\"";
+            })
+            .filter(l -> !"".equals(l))
+            .collect(Collectors.joining("\n", "", ";"));
     }
 }
