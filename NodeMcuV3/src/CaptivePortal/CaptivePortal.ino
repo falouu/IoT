@@ -13,6 +13,8 @@ const char *softAP_password = "cm52gn3k";
 String ssid = "";
 String password = "";
 
+String myHostname = "esp8266";
+
 // DNS server
 const byte DNS_PORT = 53;
 DNSServer dnsServer;
@@ -82,10 +84,18 @@ String getPage(String content) {
         "input {"
           "display: block;"
         "}"
+        ".data-ssid {"
+          "font-weight: bold;"
+        "}"
+        ".centered {"
+          "text-align: center;"
+        "}"
       "</style>"
     "</head>"
     "<body>";
   const static String footer = ""
+    "<hr />"
+    "<p class=\"centered\"><a href=\"/\">Main page</a></p>"
     "</body>"
     "</html>";
     
@@ -95,7 +105,7 @@ String getPage(String content) {
 void handleConnecting() {
   logRequest();
   const static String content = ""
-    "<h1 id=\"header-status\">Waiting for connection...</h1>"
+    "<h1 id=\"header-status\">Loading...</h1>"
     "<p>SSID: <span class=\"data-ssid\"></span></p>"
     "<p id=\"counter-line\"><span id=\"counter\"></span> seconds...</p>"
     "<p>Connection status: <span id=\"wifi-status\"></span></p>"
@@ -108,9 +118,10 @@ void handleConnecting() {
     "</p>"
     "<script>"
       "var remainingSeconds = 60;"
-      "var status = null;"
-      "var ssid = null;"
+      "var wifiStatus = undefined;"
+      "var ssid = undefined;"
       "var timeout = false;"
+      "var lastNotIdleConnectionStatus = null;"
       "var fetchStatus = function() {"
         "return fetch('/status', {"
           "method: 'get'"
@@ -125,11 +136,11 @@ void handleConnecting() {
       "var fetchStatusLoop = function() {"
         "fetchStatus()"
             ".then(function (status) {"
-              "this.status = status.wifi.status;"
+              "this.wifiStatus = status.wifi.status;"
               "ssid = status.wifi.ssid;"
-              "document.getElementById('wifi-status').innerText = this.status;"
+              "document.getElementById('wifi-status').innerText = getStatusText();"
               "[].forEach.call(document.getElementsByClassName('data-ssid'), function(el) { el.innerText = ssid; });"
-              "if (this.status !== 'WL_CONNECTED' && !timeout) {"
+              "if (this.wifiStatus !== 'WL_CONNECTED' && !timeout) {"
                 "setTimeout(fetchStatusLoop, 2000);"
               "}"
             "});"
@@ -144,6 +155,16 @@ void handleConnecting() {
         "document.getElementById('counter-line').style.display = 'none';"
         "document.getElementById('header-status').innerText = \"Connected\""
       "};"
+      "var connectionIdle = function () {"
+        "document.getElementById('header-status').innerText = \"Waiting for connection...\""
+      "};"
+      "var getStatusText = function() {"
+          "var status = this.wifiStatus;"
+          "if (lastNotIdleConnectionStatus && this.wifiStatus === 'WL_IDLE_STATUS') {"
+              "status += \" (\" + lastNotIdleConnectionStatus + \")\""
+          "}"
+          "return status;"
+      "};"
       "var tickCounter = function() {"
         "if (remainingSeconds < 0) {"
           "connectionFailed();"
@@ -151,9 +172,14 @@ void handleConnecting() {
           "return;"
         "}"
         "setCounter(remainingSeconds--);"
-        "if (this.status === 'WL_CONNECTED') {"
+        "if (this.wifiStatus === 'WL_CONNECTED') {"
           "connectionSuccess();"
           "clearInterval(counterTicker);"
+        "} else if (this.wifiStatus === 'WL_IDLE_STATUS') {"
+          "connectionIdle();"
+        "}"
+        "if (this.wifiStatus && this.wifiStatus !== 'WL_IDLE_STATUS') {"
+            "lastNotIdleConnectionStatus = this.wifiStatus;"
         "}"
       "};"
       "var setCounter = function(val) {"
@@ -168,7 +194,7 @@ void handleConnecting() {
 }
 
 void handleStatus() {
-  char buffer[60];
+  char buffer[200];
   snprintf(buffer, sizeof(buffer), "{\"wifi\":{\"ssid\":\"%s\",\"status\":\"%s\"}}", ssid.c_str(), getWifiStatus().c_str());
   server.send(200, "application/json", buffer);
 }
@@ -186,6 +212,11 @@ void handleRoot() {
       "<input type=\"submit\" value=\"Connect\" />"
     "</form>";
   server.send(200, "text/html", getPage(content));
+}
+
+void handleNotFound() {
+  server.sendHeader("Location", "/");
+  server.send(302);
 }
 
 String getWifiStatus() {
@@ -250,13 +281,23 @@ void setup() {
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(DNS_PORT, "*", apIP);
 
+  server.on("/", HTTP_GET, handleRoot);
   server.on("/connect", HTTP_POST, handleConnect);
   server.on("/connecting", HTTP_GET, handleConnecting);
   server.on("/status", HTTP_GET, handleStatus);
-  server.onNotFound(handleRoot);
+  server.onNotFound(handleNotFound);
 
   server.begin(); // Web server start
   Serial.println("HTTP server started");
+
+  // Setup MDNS responder
+  if (!MDNS.begin(myHostname.c_str())) {
+    Serial.println("Error setting up MDNS responder!");
+  } else {
+    Serial.println("mDNS responder started");
+    // Add service to MDNS-SD
+    MDNS.addService("http", "tcp", 80);
+  }
 
   //loadCredentials(); // TODO: Load WLAN credentials from network
   

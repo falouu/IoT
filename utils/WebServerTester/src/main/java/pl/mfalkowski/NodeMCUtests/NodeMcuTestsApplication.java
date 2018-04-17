@@ -233,7 +233,7 @@ public class NodeMcuTestsApplication {
                 if (content == null || content.isEmpty()) {
                     return "";
                 }
-                return prefix + "\"" + content + "\"";
+                return "    " + prefix + "\"" + content + "\"";
             })
             .filter(l -> !"".equals(l))
             .collect(Collectors.joining("\n", "", ";"));
