@@ -95,16 +95,81 @@ String getPage(String content) {
 void handleConnecting() {
   logRequest();
   const static String content = ""
+    "<h1 id=\"header-status\">Waiting for connection...</h1>"
+    "<p>SSID: <span class=\"data-ssid\"></span></p>"
+    "<p id=\"counter-line\"><span id=\"counter\"></span> seconds...</p>"
+    "<p>Connection status: <span id=\"wifi-status\"></span></p>"
+    "<p id=\"connection-success\" style=\"display: none\">"
+      "Device successfully connected to network <span class=\"data-ssid\"></span>."
+      "Temporary network will shutdown any second soon! Disconnect from it and connect to <span class=\"data-ssid\"></span> network."
+    "<p id=\"connection-failed\" style=\"display: none\">"
+      "Timed out waiting for connection!"
+    "</p>"
+    "</p>"
     "<script>"
-      ""
-    "</script>"
-    "<h1>Waiting for connection...</h1>";
+      "var remainingSeconds = 60;"
+      "var status = null;"
+      "var ssid = null;"
+      "var timeout = false;"
+      "var fetchStatus = function() {"
+        "return fetch('/status', {"
+          "method: 'get'"
+        "})"
+            ".then(function(response) {"
+              "return response.json();"
+            "})"
+            ".catch(function(err) {"
+              "console.log(err);"
+            "});"
+      "};"
+      "var fetchStatusLoop = function() {"
+        "fetchStatus()"
+            ".then(function (status) {"
+              "this.status = status.wifi.status;"
+              "ssid = status.wifi.ssid;"
+              "document.getElementById('wifi-status').innerText = this.status;"
+              "[].forEach.call(document.getElementsByClassName('data-ssid'), function(el) { el.innerText = ssid; });"
+              "if (this.status !== 'WL_CONNECTED' && !timeout) {"
+                "setTimeout(fetchStatusLoop, 2000);"
+              "}"
+            "});"
+      "};"
+      "var connectionFailed = function () {"
+        "document.getElementById('connection-failed').style.display = null;"
+        "document.getElementById('header-status').innerText = \"Connection failed\";"
+        "timeout = true;"
+      "};"
+      "var connectionSuccess = function() {"
+        "document.getElementById('connection-success').style.display = null;"
+        "document.getElementById('counter-line').style.display = 'none';"
+        "document.getElementById('header-status').innerText = \"Connected\""
+      "};"
+      "var tickCounter = function() {"
+        "if (remainingSeconds < 0) {"
+          "connectionFailed();"
+          "clearInterval(counterTicker);"
+          "return;"
+        "}"
+        "setCounter(remainingSeconds--);"
+        "if (this.status === 'WL_CONNECTED') {"
+          "connectionSuccess();"
+          "clearInterval(counterTicker);"
+        "}"
+      "};"
+      "var setCounter = function(val) {"
+        "document.getElementById('counter').innerText = val;"
+      "};"
+      "var counterTicker = setInterval(tickCounter, 1000);"
+      "tickCounter();"
+      "fetchStatusLoop();"
+    "</script>";
+  server.send(200, "text/html", getPage(content));  
   connect = true;
 }
 
 void handleStatus() {
-  char buffer[30];
-  sprintf(buffer, "{\"wifi\":\"%s\"}", getWifiStatus().c_str());
+  char buffer[60];
+  snprintf(buffer, sizeof(buffer), "{\"wifi\":{\"ssid\":\"%s\",\"status\":\"%s\"}}", ssid.c_str(), getWifiStatus().c_str());
   server.send(200, "application/json", buffer);
 }
 
