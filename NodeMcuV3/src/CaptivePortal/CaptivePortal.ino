@@ -5,6 +5,9 @@
 #include <ESP8266mDNS.h>
 #include <EEPROM.h>
 
+
+char buffer[1000];
+
 /* Set these to your desired softAP credentials. They are not configurable at runtime */
 const char *softAP_ssid = "ESP_NODE_MCU";
 const char *softAP_password = "cm52gn3k";
@@ -34,6 +37,7 @@ unsigned long lastConnectTry = 0;
 
 /** Current WLAN status */
 unsigned int status = WL_IDLE_STATUS;
+unsigned int lastConnectionStatus = WL_IDLE_STATUS;
 
 unsigned int softAPClientsNumber = 0;
 
@@ -61,10 +65,12 @@ void handleConnect() {
     if (argName == "ssid") {
       Serial.printf("Setting ssid to: '%s'\n", argValue.c_str());
       ssid = argValue;
+      lastConnectionStatus = WL_IDLE_STATUS;
     }
     if (argName == "password") {
       Serial.println("Setting wifi password");
       password = argValue;
+      lastConnectionStatus = WL_IDLE_STATUS;
     }
   }
   server.sendHeader("Location", "/connecting");
@@ -121,7 +127,7 @@ void handleConnecting() {
       "var wifiStatus = undefined;"
       "var ssid = undefined;"
       "var timeout = false;"
-      "var lastNotIdleConnectionStatus = null;"
+      "var lastWifiStatus = null;"
       "var fetchStatus = function() {"
         "return fetch('/status', {"
           "method: 'get'"
@@ -137,6 +143,7 @@ void handleConnecting() {
         "fetchStatus()"
             ".then(function (status) {"
               "this.wifiStatus = status.wifi.status;"
+              "this.lastWifiStatus = status.wifi.lastStatus;"
               "ssid = status.wifi.ssid;"
               "document.getElementById('wifi-status').innerText = getStatusText();"
               "[].forEach.call(document.getElementsByClassName('data-ssid'), function(el) { el.innerText = ssid; });"
@@ -160,8 +167,8 @@ void handleConnecting() {
       "};"
       "var getStatusText = function() {"
           "var status = this.wifiStatus;"
-          "if (lastNotIdleConnectionStatus && this.wifiStatus === 'WL_IDLE_STATUS') {"
-              "status += \" (\" + lastNotIdleConnectionStatus + \")\""
+          "if (lastWifiStatus) {"
+              "status += \" (\" + lastWifiStatus + \")\""
           "}"
           "return status;"
       "};"
@@ -178,9 +185,6 @@ void handleConnecting() {
         "} else if (this.wifiStatus === 'WL_IDLE_STATUS') {"
           "connectionIdle();"
         "}"
-        "if (this.wifiStatus && this.wifiStatus !== 'WL_IDLE_STATUS') {"
-            "lastNotIdleConnectionStatus = this.wifiStatus;"
-        "}"
       "};"
       "var setCounter = function(val) {"
         "document.getElementById('counter').innerText = val;"
@@ -194,8 +198,14 @@ void handleConnecting() {
 }
 
 void handleStatus() {
-  char buffer[200];
-  snprintf(buffer, sizeof(buffer), "{\"wifi\":{\"ssid\":\"%s\",\"status\":\"%s\"}}", ssid.c_str(), getWifiStatus().c_str());
+  snprintf(
+    buffer, 
+    sizeof(buffer), 
+    "{\"wifi\":{\"ssid\":\"%s\",\"status\":\"%s\",\"lastStatus\":\"%s\"}}", 
+    ssid.c_str(), 
+    getWifiStatus().c_str(),
+    getLastWifiStatus().c_str()
+  );
   server.send(200, "application/json", buffer);
 }
 
@@ -222,6 +232,23 @@ void handleNotFound() {
 String getWifiStatus() {
   unsigned int connStatus = WiFi.status();
   return getWifiStatusText(connStatus);
+}
+
+String getLastWifiStatus() {
+  if (lastConnectionStatus == WL_IDLE_STATUS) {
+    return "";
+  }
+  return getWifiStatusText(lastConnectionStatus);
+}
+
+void updateLastWifiStatus(unsigned int connStatus) {
+  if (connStatus == WL_IDLE_STATUS) {
+    return;
+  }
+  if (connStatus == WL_SCAN_COMPLETED) {
+    return;
+  }
+  lastConnectionStatus = connStatus;
 }
 
 String getWifiStatusText(unsigned int connStatus) {
@@ -313,6 +340,7 @@ void loop() {
   }
   {
     unsigned int s = WiFi.status();
+    updateLastWifiStatus(s);
     if (s == WL_IDLE_STATUS && millis() > (lastConnectTry + 60000)) {
       /* If WLAN disconnected and idle try to connect */
       /* Don't set retry time too low as retry interfere the softAP operation */

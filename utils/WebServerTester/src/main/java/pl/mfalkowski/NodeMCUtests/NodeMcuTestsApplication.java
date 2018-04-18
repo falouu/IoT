@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -64,6 +65,9 @@ public class NodeMcuTestsApplication {
 	    List<WifiStatusData> wifiStatuses;
 	    String wifiStatus;
 
+        List<WifiStatusData> lastWifiStatuses;
+        String lastWifiStatus;
+
 	    List<String> templateNames;
     }
 
@@ -71,6 +75,7 @@ public class NodeMcuTestsApplication {
 	    String ssid;
 	    String password;
 	    String status = "";
+	    String lastConnectionStatus = "";
     }
 
     static class Status {
@@ -79,6 +84,7 @@ public class NodeMcuTestsApplication {
         static class Wifi {
             String ssid;
             String status;
+            String lastStatus;
         }
     }
 
@@ -100,7 +106,8 @@ public class NodeMcuTestsApplication {
                 Mono.just(new Status())
                     .doOnNext(s -> s.wifi = new Status.Wifi())
                     .doOnNext(s -> s.wifi.status = state.status)
-                    .doOnNext(s -> s.wifi.ssid = state.ssid),
+                    .doOnNext(s -> s.wifi.ssid = state.ssid)
+                    .doOnNext(s -> s.wifi.lastStatus = state.lastConnectionStatus),
                 Status.class
             );
 
@@ -122,22 +129,31 @@ public class NodeMcuTestsApplication {
                 )
                 .then(ServerResponse.seeOther(URI.create("/connecting")).build());
 
+	private Function<String, Mono<List<AdminData.WifiStatusData>>> getAdminWifiStatuses =
+        currentValue ->
+            Flux.fromArray(WifiStatus.values())
+                .map(Enum::name)
+                .concatWith(Mono.just(""))
+                .flatMap(s -> Mono.just(new AdminData.WifiStatusData())
+                    .doOnNext(sd -> sd.value = s)
+                    .doOnNext(sd -> sd.isCurrent = (Objects.equals(s, currentValue)))
+                )
+                .collectList();
+
 	private HandlerFunction<ServerResponse> adminGetHandler =
         request ->
             Mono.just(new AdminData())
-                .zipWith(
-                    Flux.fromArray(WifiStatus.values())
-                        .map(Enum::name)
-                        .flatMap(s -> Mono
-                            .just(new AdminData.WifiStatusData())
-                            .doOnNext(sd -> sd.value = s)
-                            .doOnNext(sd -> sd.isCurrent = (Objects.equals(s, state.status)))
-                        )
-                        .collectList()
-                )
+
+                .zipWith(getAdminWifiStatuses.apply(state.status))
                 .doOnNext(t -> t.getT1().wifiStatuses = t.getT2())
                 .map(Tuple2::getT1)
                 .doOnNext(data -> data.wifiStatus = state.status)
+
+                .zipWith(getAdminWifiStatuses.apply(state.lastConnectionStatus))
+                .doOnNext(t -> t.getT1().lastWifiStatuses = t.getT2())
+                .map(Tuple2::getT1)
+                .doOnNext(data -> data.lastWifiStatus = state.lastConnectionStatus)
+
                 .flatMap(data -> getTemplateNames()
                     .collectList()
                     .doOnNext(templateNames -> data.templateNames = templateNames)
@@ -150,6 +166,7 @@ public class NodeMcuTestsApplication {
         request ->
             request.formData()
                 .doOnNext(form -> state.status = form.getFirst("wifiStatus"))
+                .doOnNext(form -> state.lastConnectionStatus = form.getFirst("lastWifiStatus"))
                 .then(ServerResponse.seeOther(URI.create("/admin")).build());
 
 	private HandlerFunction<ServerResponse> adminGetTemplateHandler =

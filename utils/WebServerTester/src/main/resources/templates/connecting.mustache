@@ -16,7 +16,7 @@
   var wifiStatus = undefined;
   var ssid = undefined;
   var timeout = false;
-  var lastNotIdleConnectionStatus = null;
+  var lastWifiStatus = null;
 
   var fetchStatus = function() {
     return fetch('/status', {
@@ -35,6 +35,7 @@
     fetchStatus()
         .then(function (status) {
           this.wifiStatus = status.wifi.status;
+          this.lastWifiStatus = status.wifi.lastStatus;
           ssid = status.wifi.ssid;
 
           document.getElementById('wifi-status').innerText = getStatusText();
@@ -65,8 +66,8 @@
 
   var getStatusText = function() {
       var status = this.wifiStatus;
-      if (lastNotIdleConnectionStatus && this.wifiStatus === 'WL_IDLE_STATUS') {
-          status += " (" + lastNotIdleConnectionStatus + ")"
+      if (lastWifiStatus) {
+          status += " (" + lastWifiStatus + ")"
       }
       return status;
   };
@@ -83,10 +84,6 @@
       clearInterval(counterTicker);
     } else if (this.wifiStatus === 'WL_IDLE_STATUS') {
       connectionIdle();
-    }
-
-    if (this.wifiStatus && this.wifiStatus !== 'WL_IDLE_STATUS') {
-        lastNotIdleConnectionStatus = this.wifiStatus;
     }
   };
 

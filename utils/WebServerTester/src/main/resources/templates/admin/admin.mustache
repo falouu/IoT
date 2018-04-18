@@ -47,6 +47,15 @@
         </td>
         <td>{{data.wifiStatus}}</td>
       </tr>
+      <tr>
+        <td><label for="lastWifiStatus">lastConnectionStatus: </label></td>
+        <td>
+          <select id="lastWifiStatus" name="lastWifiStatus">
+            {{> admin/blocks/lastWifiStatusOptions }}
+          </select>
+        </td>
+        <td>{{data.lastWifiStatus}}</td>
+      </tr>
     </table>
     <input type="submit" value="Apply"/>
   </form>
