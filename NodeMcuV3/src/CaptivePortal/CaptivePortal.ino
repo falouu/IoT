@@ -29,6 +29,8 @@ ESP8266WebServer server(80);
 IPAddress apIP(192, 168, 1, 1);
 IPAddress netMsk(255, 255, 255, 0);
 
+//// STATE VARIABLES /////////////////
+
 /** Should I connect to WLAN asap? */
 boolean connect;
 
@@ -40,6 +42,8 @@ unsigned int status = WL_IDLE_STATUS;
 unsigned int lastConnectionStatus = WL_IDLE_STATUS;
 
 unsigned int softAPClientsNumber = 0;
+
+//// END OF STATE VARIABLES ///////////////////////
 
 void logRequest() {
   Serial.print("Request for page: ");
@@ -54,7 +58,7 @@ void logRequest() {
       Serial.print("UNKNOWNK ");
       break;
   }
-  Serial.println(server.uri());
+  Serial.println(server.hostHeader() + server.uri());
 }
 
 void handleConnect() {
@@ -109,7 +113,9 @@ String getPage(String content) {
 }
 
 void handleConnecting() {
-  logRequest();
+  if (preHandle()) {
+    return;
+  }
   const static String content = ""
     "<h1 id=\"header-status\">Loading...</h1>"
     "<p>SSID: <span class=\"data-ssid\"></span></p>"
@@ -198,6 +204,9 @@ void handleConnecting() {
 }
 
 void handleStatus() {
+  if (preHandle()) {
+    return;
+  }
   snprintf(
     buffer, 
     sizeof(buffer), 
@@ -210,7 +219,9 @@ void handleStatus() {
 }
 
 void handleRoot() {
-  logRequest();
+  if (preHandle()) {
+    return;
+  }
   const static String content = ""
     "<h1>Welcome!</h1>"
     "<h2>WiFi setup</h2>"
@@ -224,14 +235,45 @@ void handleRoot() {
   server.send(200, "text/html", getPage(content));
 }
 
+bool preHandle() {
+  logRequest();
+  if (domainRedirectIfRequired()) {
+    return true;
+  }
+  return false;
+}
+
+boolean domainRedirectIfRequired() {
+  if (softAPClientsNumber > 0 && !isWifiConnected()) {
+    String host = server.hostHeader();
+    String cUri = server.uri();
+    const static String correctHost = myHostname + ".local";
+    if (host == correctHost) {
+      return false;
+    }
+    
+    String location = "http://" + myHostname + ".local" + cUri;
+    server.sendHeader("Location", location);
+    server.send(302);
+    return true;
+  }
+  return false;
+}
+
 void handleNotFound() {
+  if (preHandle()) {
+    return;
+  }
   server.sendHeader("Location", "/");
   server.send(302);
 }
 
+boolean isWifiConnected() {
+  return status == WL_CONNECTED;
+}
+
 String getWifiStatus() {
-  unsigned int connStatus = WiFi.status();
-  return getWifiStatusText(connStatus);
+  return getWifiStatusText(status);
 }
 
 String getLastWifiStatus() {
@@ -288,6 +330,51 @@ void connectWifi() {
 }
 
 
+void updateState() {
+  if (connect) {
+    Serial.println("WiFi connect attempt");
+    connect = false;
+    connectWifi();
+    lastConnectTry = millis();
+  }
+  {
+    unsigned int s = WiFi.status();
+    updateLastWifiStatus(s);
+    if (s == WL_IDLE_STATUS && millis() > (lastConnectTry + 60000)) {
+      /* If WLAN disconnected and idle try to connect */
+      /* Don't set retry time too low as retry interfere the softAP operation */
+      connect = true;
+    }
+    if (status != s) { // WLAN status change
+      Serial.print("WiFi status changed to: ");
+      printWifiStatus(s);
+      status = s;
+      if (s == WL_CONNECTED) {
+        /* Just connected to WLAN */
+        Serial.println("");
+        Serial.print("Connected to ");
+        Serial.println(ssid);
+        Serial.print("IP address: ");
+        Serial.println(WiFi.localIP());
+
+        // TODO: Setup MDNS responder
+      } else if (s == WL_NO_SSID_AVAIL) {
+        WiFi.disconnect();
+      }
+    }
+  }
+
+  unsigned int currentSoftAPClients = WiFi.softAPgetStationNum();
+  if (currentSoftAPClients != softAPClientsNumber) {
+    if (currentSoftAPClients > softAPClientsNumber) {
+      Serial.printf("New client connected to soft-AP. Current clients number: %d\n", currentSoftAPClients);
+    } else {
+      Serial.printf("Client disconnected from soft-AP. Current clients number: %d\n", currentSoftAPClients);
+    }
+    softAPClientsNumber = currentSoftAPClients;
+  }
+}
+
 
 void setup() {
   delay(1000);
@@ -332,48 +419,8 @@ void setup() {
 }
 
 void loop() {
-  if (connect) {
-    Serial.println("WiFi connect attempt");
-    connect = false;
-    connectWifi();
-    lastConnectTry = millis();
-  }
-  {
-    unsigned int s = WiFi.status();
-    updateLastWifiStatus(s);
-    if (s == WL_IDLE_STATUS && millis() > (lastConnectTry + 60000)) {
-      /* If WLAN disconnected and idle try to connect */
-      /* Don't set retry time too low as retry interfere the softAP operation */
-      connect = true;
-    }
-    if (status != s) { // WLAN status change
-      Serial.print("WiFi status changed to: ");
-      printWifiStatus(s);
-      status = s;
-      if (s == WL_CONNECTED) {
-        /* Just connected to WLAN */
-        Serial.println("");
-        Serial.print("Connected to ");
-        Serial.println(ssid);
-        Serial.print("IP address: ");
-        Serial.println(WiFi.localIP());
-
-        // TODO: Setup MDNS responder
-      } else if (s == WL_NO_SSID_AVAIL) {
-        WiFi.disconnect();
-      }
-    }
-  }
-
-  unsigned int currentSoftAPClients = WiFi.softAPgetStationNum();
-  if (currentSoftAPClients != softAPClientsNumber) {
-    if (currentSoftAPClients > softAPClientsNumber) {
-      Serial.printf("New client connected to soft-AP. Current clients number: %d\n", currentSoftAPClients);
-    } else {
-      Serial.printf("Client disconnected from soft-AP. Current clients number: %d\n", currentSoftAPClients);
-    }
-    softAPClientsNumber = currentSoftAPClients;
-  }
+  updateState();
+  
   // Do work:
   //DNS
   dnsServer.processNextRequest();
