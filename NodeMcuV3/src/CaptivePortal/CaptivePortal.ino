@@ -123,7 +123,8 @@ void handleConnecting() {
     "<p>Connection status: <span id=\"wifi-status\"></span></p>"
     "<p id=\"connection-success\" style=\"display: none\">"
       "Device successfully connected to network <span class=\"data-ssid\"></span>."
-      "Temporary network will shutdown any second soon! Disconnect from it and connect to <span class=\"data-ssid\"></span> network."
+      "Temporary network will shutdown any second soon! Disconnect from it, connect to <span class=\"data-ssid\"></span> network,"
+      "and go to <a target=\"_blank\" id=\"local-ip\"></a>"
     "<p id=\"connection-failed\" style=\"display: none\">"
       "Timed out waiting for connection!"
     "</p>"
@@ -134,6 +135,7 @@ void handleConnecting() {
       "var ssid = undefined;"
       "var timeout = false;"
       "var lastWifiStatus = null;"
+      "var localIP;"
       "var fetchStatus = function() {"
         "return fetch('/status', {"
           "method: 'get'"
@@ -150,7 +152,8 @@ void handleConnecting() {
             ".then(function (status) {"
               "this.wifiStatus = status.wifi.status;"
               "this.lastWifiStatus = status.wifi.lastStatus;"
-              "ssid = status.wifi.ssid;"
+              "this.ssid = status.wifi.ssid;"
+              "this.localIP = status.wifi.localIP;"
               "document.getElementById('wifi-status').innerText = getStatusText();"
               "[].forEach.call(document.getElementsByClassName('data-ssid'), function(el) { el.innerText = ssid; });"
               "if (this.wifiStatus !== 'WL_CONNECTED' && !timeout) {"
@@ -166,14 +169,18 @@ void handleConnecting() {
       "var connectionSuccess = function() {"
         "document.getElementById('connection-success').style.display = null;"
         "document.getElementById('counter-line').style.display = 'none';"
-        "document.getElementById('header-status').innerText = \"Connected\""
+        "document.getElementById('header-status').innerText = \"Connected\";"
+        "var ipLink = \"http://\" + this.localIP;"
+        "var ipAnchor = document.getElementById('local-ip');"
+        "ipAnchor.innerText = ipLink;"
+        "ipAnchor.href = ipLink;"
       "};"
       "var connectionIdle = function () {"
         "document.getElementById('header-status').innerText = \"Waiting for connection...\""
       "};"
       "var getStatusText = function() {"
           "var status = this.wifiStatus;"
-          "if (lastWifiStatus) {"
+          "if (this.lastWifiStatus && this.lastWifiStatus !== this.wifiStatus) {"
               "status += \" (\" + lastWifiStatus + \")\""
           "}"
           "return status;"
@@ -210,10 +217,11 @@ void handleStatus() {
   snprintf(
     buffer, 
     sizeof(buffer), 
-    "{\"wifi\":{\"ssid\":\"%s\",\"status\":\"%s\",\"lastStatus\":\"%s\"}}", 
+    "{\"wifi\":{\"ssid\":\"%s\",\"status\":\"%s\",\"lastStatus\":\"%s\",\"localIP\": \"%s\"}}", 
     ssid.c_str(), 
     getWifiStatus().c_str(),
-    getLastWifiStatus().c_str()
+    getLastWifiStatus().c_str(),
+    WiFi.localIP().toString().c_str()
   );
   server.send(200, "application/json", buffer);
 }

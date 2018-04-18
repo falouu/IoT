@@ -69,6 +69,8 @@ public class NodeMcuTestsApplication {
         String lastWifiStatus;
 
 	    List<String> templateNames;
+
+	    String localIP;
     }
 
     static class State {
@@ -76,6 +78,7 @@ public class NodeMcuTestsApplication {
 	    String password;
 	    String status = "";
 	    String lastConnectionStatus = "";
+	    String localIP = "0.0.0.0";
     }
 
     static class Status {
@@ -85,6 +88,7 @@ public class NodeMcuTestsApplication {
             String ssid;
             String status;
             String lastStatus;
+            String localIP;
         }
     }
 
@@ -107,7 +111,8 @@ public class NodeMcuTestsApplication {
                     .doOnNext(s -> s.wifi = new Status.Wifi())
                     .doOnNext(s -> s.wifi.status = state.status)
                     .doOnNext(s -> s.wifi.ssid = state.ssid)
-                    .doOnNext(s -> s.wifi.lastStatus = state.lastConnectionStatus),
+                    .doOnNext(s -> s.wifi.lastStatus = state.lastConnectionStatus)
+                    .doOnNext(s -> s.wifi.localIP = state.localIP),
                 Status.class
             );
 
@@ -154,6 +159,8 @@ public class NodeMcuTestsApplication {
                 .map(Tuple2::getT1)
                 .doOnNext(data -> data.lastWifiStatus = state.lastConnectionStatus)
 
+                .doOnNext(data -> data.localIP = state.localIP)
+
                 .flatMap(data -> getTemplateNames()
                     .collectList()
                     .doOnNext(templateNames -> data.templateNames = templateNames)
@@ -167,6 +174,7 @@ public class NodeMcuTestsApplication {
             request.formData()
                 .doOnNext(form -> state.status = form.getFirst("wifiStatus"))
                 .doOnNext(form -> state.lastConnectionStatus = form.getFirst("lastWifiStatus"))
+                .doOnNext(form -> state.localIP = form.getFirst("localIP"))
                 .then(ServerResponse.seeOther(URI.create("/admin")).build());
 
 	private HandlerFunction<ServerResponse> adminGetTemplateHandler =
