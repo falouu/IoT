@@ -1,4 +1,5 @@
 {{> header }}
+<div id="error" class="error" style="display: none"></div>
 <h1 id="header-status">Loading...</h1>
 <p>SSID: <span class="data-ssid"></span></p>
 <p id="counter-line"><span id="counter"></span> seconds...</p>
@@ -20,18 +21,7 @@
   var lastWifiStatus = null;
   var localIP;
 
-  var fetchStatus = function() {
-    return fetch('/status', {
-      method: 'get'
-    })
-        .then(function(response) {
-          return response.json();
-        })
-        .catch(function(err) {
-          console.log(err);
-        });
-  };
-
+  {{> fetch_status_js }}
   var fetchStatusLoop = function() {
 
     fetchStatus()
@@ -41,7 +31,7 @@
           this.ssid = status.wifi.ssid;
           this.localIP = status.wifi.localIP;
 
-          document.getElementById('wifi-status').innerText = getStatusText();
+          document.getElementById('wifi-status').innerText = getStatusText(this.wifiStatus, this.lastWifiStatus);
 
           [].forEach.call(document.getElementsByClassName('data-ssid'), function(el) { el.innerText = ssid; });
 
@@ -73,10 +63,10 @@
     document.getElementById('header-status').innerText = "Waiting for connection..."
   };
 
-  var getStatusText = function() {
-      var status = this.wifiStatus;
-      if (this.lastWifiStatus && this.lastWifiStatus !== this.wifiStatus) {
-          status += " (" + lastWifiStatus + ")"
+  var getStatusText = function(cStatus, lStatus) {
+      var status = cStatus;
+      if (lStatus && lStatus !== cStatus) {
+          status += " (" + lStatus + ")"
       }
       return status;
   };

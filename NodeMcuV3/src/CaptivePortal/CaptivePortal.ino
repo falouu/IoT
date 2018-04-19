@@ -1,9 +1,11 @@
 #include <ESP8266WiFi.h>
-#include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <DNSServer.h>
 #include <ESP8266mDNS.h>
-#include <EEPROM.h>
+extern "C" {
+  #include "user_interface.h"
+}
+
 
 
 char buffer[1000];
@@ -217,11 +219,16 @@ void handleStatus() {
   snprintf(
     buffer, 
     sizeof(buffer), 
-    "{\"wifi\":{\"ssid\":\"%s\",\"status\":\"%s\",\"lastStatus\":\"%s\",\"localIP\": \"%s\"}}", 
+    "{"
+      "\"wifi\":{\"ssid\":\"%s\",\"status\":\"%s\",\"lastStatus\":\"%s\",\"localIP\": \"%s\"},"
+      "\"softAP\":{\"ssid\": \"%s\", \"enabled\":\"%s\"}"
+    "}", 
     ssid.c_str(), 
     getWifiStatus().c_str(),
     getLastWifiStatus().c_str(),
-    WiFi.localIP().toString().c_str()
+    WiFi.localIP().toString().c_str(),
+    softAPSSID().c_str(),
+    isAPModeEnabled() ? "true" : "false"
   );
   server.send(200, "application/json", buffer);
 }
@@ -335,6 +342,26 @@ void connectWifi() {
   int connStatus = WiFi.waitForConnectResult();
   Serial.print("connection status: ");
   printWifiStatus(connStatus);
+}
+
+/**
+ * This is copied from newer version of arduino.esp8266.com, that is not released yet
+ */
+String softAPSSID() {
+  struct softap_config config;
+  wifi_softap_get_config(&config);
+  char* name = reinterpret_cast<char*>(config.ssid);
+  char ssid[sizeof(config.ssid) + 1];
+  memcpy(ssid, name, sizeof(config.ssid));
+  ssid[sizeof(config.ssid)] = '\0';
+
+  return String(ssid);
+}
+
+boolean isAPModeEnabled() {
+  //WiFiMode_t getMode()
+  WiFiMode_t currentMode = WiFi.getMode();
+  return ((currentMode & WIFI_AP) != 0);
 }
 
 

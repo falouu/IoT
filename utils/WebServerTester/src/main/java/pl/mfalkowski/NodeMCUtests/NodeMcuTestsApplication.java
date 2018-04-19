@@ -71,24 +71,34 @@ public class NodeMcuTestsApplication {
 	    List<String> templateNames;
 
 	    String localIP;
+	    String ssid;
     }
 
     static class State {
-	    String ssid;
+	    String ssid = "";
 	    String password;
 	    String status = "";
 	    String lastConnectionStatus = "";
 	    String localIP = "0.0.0.0";
+
+	    String softAPssid = "";
+	    String softAPenabled = "false";
     }
 
     static class Status {
         Wifi wifi;
+        SoftAP softAP;
 
         static class Wifi {
             String ssid;
             String status;
             String lastStatus;
             String localIP;
+        }
+
+        static class SoftAP {
+            String ssid;
+            String enabled;
         }
     }
 
@@ -112,7 +122,10 @@ public class NodeMcuTestsApplication {
                     .doOnNext(s -> s.wifi.status = state.status)
                     .doOnNext(s -> s.wifi.ssid = state.ssid)
                     .doOnNext(s -> s.wifi.lastStatus = state.lastConnectionStatus)
-                    .doOnNext(s -> s.wifi.localIP = state.localIP),
+                    .doOnNext(s -> s.wifi.localIP = state.localIP)
+                    .doOnNext(s -> s.softAP = new Status.SoftAP())
+                    .doOnNext(s -> s.softAP.enabled = state.softAPenabled)
+                    .doOnNext(s -> s.softAP.ssid = state.softAPssid),
                 Status.class
             );
 
@@ -166,6 +179,7 @@ public class NodeMcuTestsApplication {
                     .doOnNext(templateNames -> data.templateNames = templateNames)
                     .map(t -> data)
                 )
+                .doOnNext(data -> data.ssid = state.ssid)
                 .map(data -> Collections.singletonMap("data", data))
                 .flatMap(model -> ServerResponse.ok().render("admin/admin", model));
 
@@ -175,6 +189,7 @@ public class NodeMcuTestsApplication {
                 .doOnNext(form -> state.status = form.getFirst("wifiStatus"))
                 .doOnNext(form -> state.lastConnectionStatus = form.getFirst("lastWifiStatus"))
                 .doOnNext(form -> state.localIP = form.getFirst("localIP"))
+                .doOnNext(form -> state.ssid = form.getFirst("ssid"))
                 .then(ServerResponse.seeOther(URI.create("/admin")).build());
 
 	private HandlerFunction<ServerResponse> adminGetTemplateHandler =

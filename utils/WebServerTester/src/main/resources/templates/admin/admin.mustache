@@ -31,42 +31,58 @@
   <div id="error" style="display: none"></div>
   <div class="container">
   <h1>ESP8266 Admin</h1>
-  <form method="post">
-    <table>
-      <tr>
-        <th>variable</th>
-        <th>set value</th>
-        <th>current value</th>
-      </tr>
-      <tr>
-        <td><label for="wifiStatus">status: </label></td>
-        <td>
-          <select id="wifiStatus" name="wifiStatus">
-            {{> admin/blocks/wifiStatusOptions }}
-          </select>
-        </td>
-        <td>{{data.wifiStatus}}</td>
-      </tr>
-      <tr>
-        <td><label for="lastWifiStatus">lastConnectionStatus: </label></td>
-        <td>
-          <select id="lastWifiStatus" name="lastWifiStatus">
-            {{> admin/blocks/lastWifiStatusOptions }}
-          </select>
-        </td>
-        <td>{{data.lastWifiStatus}}</td>
-      </tr>
-      <tr>
-        <td><label for="localIP">localIP: </label></td>
-        <td>
-          <input type="text" id="localIP" name="localIP" />
-        </td>
-        <td>{{data.localIP}}</td>
-      </tr>
-    </table>
-    <input type="submit" value="Apply"/>
-  </form>
+  <div style="display: table-row">
+    <div style="display: table-cell; padding-right: 10px">
+      <form method="post">
+        <table>
+          <tr>
+            <th>variable</th>
+            <th>set value</th>
+            <th>current value</th>
+          </tr>
+          <tr>
+            <td><label for="wifiStatus">status: </label></td>
+            <td>
+              <select id="wifiStatus" name="wifiStatus">
+                {{> admin/blocks/wifiStatusOptions }}
+              </select>
+            </td>
+            <td>{{data.wifiStatus}}</td>
+          </tr>
+          <tr>
+            <td><label for="lastWifiStatus">lastConnectionStatus: </label></td>
+            <td>
+              <select id="lastWifiStatus" name="lastWifiStatus">
+                {{> admin/blocks/lastWifiStatusOptions }}
+              </select>
+            </td>
+            <td>{{data.lastWifiStatus}}</td>
+          </tr>
+          <tr>
+            <td><label for="localIP">localIP: </label></td>
+            <td>
+              <input type="text" id="localIP" name="localIP" value="{{data.localIP}}"/>
+            </td>
+            <td>{{data.localIP}}</td>
+          </tr>
+          <tr>
+            <td><label for="ssid">ssid: </label></td>
+            <td>
+              <input type="text" id="ssid" name="ssid" value="{{data.ssid}}"/>
+            </td>
+            <td>{{data.ssid}}</td>
+          </tr>
+        </table>
 
+        <input type="submit" value="Apply"/>
+      </form>
+    </div>
+    <div style="display: table-cell; vertical-align: top; padding-left: 10px; border-left: solid 1px gray">
+      <p style="font-weight: bold">Presets: </p>
+      <select id="preset-select">
+      </select>
+    </div>
+  </div>
 
   <h2>Get template</h2>
   <div>
@@ -81,22 +97,22 @@
   </div>
 <script>
 
-  var error = function(message, err) {
+  let error = function(message, err) {
     console.log(message, err);
-    var container = document.getElementById('error');
+    let container = document.getElementById('error');
 
     container.innerText = message + ". Caused by: " + err;
     container.style.display = null
   };
 
-  var clearError = function () {
-    var container = document.getElementById('error');
+  let clearError = function () {
+    let container = document.getElementById('error');
 
     container.innerText = "";
     container.style.display = 'none'
   };
 
-  var fetchTemplate = function(name) {
+  let fetchTemplate = function(name) {
     clearError();
     return fetch('/admin/template?name=' + name, {
         method: 'get'
@@ -113,6 +129,50 @@
       });
   };
 
+  let setValue = function (select, value) {
+      if (value === undefined) {
+          return;
+      }
+      select.value = value;
+  };
+
+  let loadPresets = function() {
+    let presets = {
+        'empty': {
+          'wifiStatus': '',
+          'lastWifiStatus': '',
+          'localIP': '',
+          'ssid': ''
+        },
+        'fully connected, no soft AP': {
+            'wifiStatus': 'WL_CONNECTED',
+            'lastWifiStatus': 'WL_CONNECTED',
+            'localIP': '192.168.0.101',
+            'ssid': 'Schynet-8ghz'
+        },
+        'fully connected + soft AP': {}
+    };
+
+    let selectDOM = document.getElementById('preset-select');
+
+    selectDOM.innerHTML = '';
+
+    for (let preset in presets) {
+      selectDOM.innerHTML += '<option value="' + preset + '">' + preset + '</option>'
+    }
+
+    selectDOM.onchange = function(ev) {
+      let presetName = ev.target.value;
+      let preset = presets[presetName];
+
+      setValue(document.getElementById('wifiStatus'), preset['wifiStatus']);
+      setValue(document.getElementById('lastWifiStatus'), preset['lastWifiStatus']);
+      setValue(document.getElementById('localIP'), preset['localIP']);
+      setValue(document.getElementById('ssid'), preset['ssid']);
+    }
+
+  };
+
   document.getElementById('get-template-submit').onclick = function (ev) {
     var select = document.getElementById('get-template');
     var value = select[select.selectedIndex].value;
@@ -121,6 +181,8 @@
           document.getElementById('template-content').innerText = templateContent;
         })
   };
+
+  loadPresets();
 
 </script>
 </body>
