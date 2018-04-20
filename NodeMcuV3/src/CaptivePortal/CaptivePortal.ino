@@ -221,14 +221,16 @@ void handleStatus() {
     sizeof(buffer), 
     "{"
       "\"wifi\":{\"ssid\":\"%s\",\"status\":\"%s\",\"lastStatus\":\"%s\",\"localIP\": \"%s\"},"
-      "\"softAP\":{\"ssid\": \"%s\", \"enabled\":\"%s\"}"
+      "\"softAP\":{\"ssid\": \"%s\", \"enabled\":\"%s\",\"ip\":\"%s\",\"clients\":\"%u\"}"
     "}", 
     ssid.c_str(), 
     getWifiStatus().c_str(),
     getLastWifiStatus().c_str(),
     WiFi.localIP().toString().c_str(),
     softAPSSID().c_str(),
-    isAPModeEnabled() ? "true" : "false"
+    isAPModeEnabled() ? "true" : "false",
+    WiFi.softAPIP().toString().c_str(),
+    softAPClientsNumber
   );
   server.send(200, "application/json", buffer);
 }

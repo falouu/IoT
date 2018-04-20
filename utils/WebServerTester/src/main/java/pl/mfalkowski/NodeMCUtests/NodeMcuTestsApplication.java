@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
 import static com.fasterxml.jackson.annotation.PropertyAccessor.FIELD;
+import static org.springframework.web.reactive.function.BodyInserters.fromFormData;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
@@ -72,6 +73,11 @@ public class NodeMcuTestsApplication {
 
 	    String localIP;
 	    String ssid;
+
+	    String softAPssid;
+	    String softAPenabled;
+	    String softAPIP;
+	    int softAPClients;
     }
 
     static class State {
@@ -83,6 +89,8 @@ public class NodeMcuTestsApplication {
 
 	    String softAPssid = "";
 	    String softAPenabled = "false";
+	    String softAPIP = "0.0.0.0";
+	    int softAPClients = 0;
     }
 
     static class Status {
@@ -99,6 +107,8 @@ public class NodeMcuTestsApplication {
         static class SoftAP {
             String ssid;
             String enabled;
+            String ip;
+            int clients;
         }
     }
 
@@ -125,7 +135,9 @@ public class NodeMcuTestsApplication {
                     .doOnNext(s -> s.wifi.localIP = state.localIP)
                     .doOnNext(s -> s.softAP = new Status.SoftAP())
                     .doOnNext(s -> s.softAP.enabled = state.softAPenabled)
-                    .doOnNext(s -> s.softAP.ssid = state.softAPssid),
+                    .doOnNext(s -> s.softAP.ssid = state.softAPssid)
+                    .doOnNext(s -> s.softAP.ip = state.softAPIP)
+                    .doOnNext(s -> s.softAP.clients = state.softAPClients),
                 Status.class
             );
 
@@ -174,6 +186,11 @@ public class NodeMcuTestsApplication {
 
                 .doOnNext(data -> data.localIP = state.localIP)
 
+                .doOnNext(data -> data.softAPssid = state.softAPssid)
+                .doOnNext(data -> data.softAPenabled = state.softAPenabled)
+                .doOnNext(data -> data.softAPIP = state.softAPIP)
+                .doOnNext(data -> data.softAPClients = state.softAPClients)
+
                 .flatMap(data -> getTemplateNames()
                     .collectList()
                     .doOnNext(templateNames -> data.templateNames = templateNames)
@@ -190,6 +207,10 @@ public class NodeMcuTestsApplication {
                 .doOnNext(form -> state.lastConnectionStatus = form.getFirst("lastWifiStatus"))
                 .doOnNext(form -> state.localIP = form.getFirst("localIP"))
                 .doOnNext(form -> state.ssid = form.getFirst("ssid"))
+                .doOnNext(form -> state.softAPenabled = form.getFirst("softAPenabled"))
+                .doOnNext(form -> state.softAPssid = form.getFirst("softAPssid"))
+                .doOnNext(form -> state.softAPIP = form.getFirst("softAPIP"))
+                .doOnNext(form -> state.softAPClients = Integer.parseInt(form.getFirst("softAPClients")))
                 .then(ServerResponse.seeOther(URI.create("/admin")).build());
 
 	private HandlerFunction<ServerResponse> adminGetTemplateHandler =

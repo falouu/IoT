@@ -6,6 +6,7 @@
   <tr class="wifi-details hidden"><td>SSID: </td><td id="wifi-ssid"></td></tr>
   <tr class="wifi-details hidden"><td>IP: </td><td id="wifi-ip"></td></tr>
   <tr><td>Soft AP status: </td><td id="current-soft-ap-status"></td></tr>
+  <tr class="soft-ap-details hidden"><td>Soft AP ssid: </td><td id="soft-ap-ssid"></td></tr>
   <tr class="soft-ap-details hidden"><td>Soft AP IP: </td><td id="soft-ap-ip"></td></tr>
   <tr class="soft-ap-details hidden"><td>Soft AP clients: </td><td id="soft-ap-clients"></td></tr>
 </table>
@@ -23,10 +24,6 @@
 </div>
 <script>
   {{> fetch_status_js }}
-  var wifiStatuses = {
-    connected: 'WL_CONNECTED'
-  };
-
   var wifiStatus;
   var lastWifiStatus;
   var wifiIP;
@@ -69,6 +66,12 @@
     var disconnectFormDOM = document.getElementById('disconnect-form');
 
     var wifiDetailsDOMs = document.getElementsByClassName('wifi-details');
+    var softAPDetailsDOMs = document.getElementsByClassName('soft-ap-details');
+
+    var softAPStatusDOM = document.getElementById('current-soft-ap-status');
+    var softAPssidDOM = document.getElementById('soft-ap-ssid');
+    var softAPIPDom = document.getElementById('soft-ap-ip');
+    var softAPClientsDom = document.getElementById('soft-ap-clients');
 
     unsetLoading();
 
@@ -85,6 +88,17 @@
     wifiStatusDOM.innerText = getStatusText(this.wifiStatus, this.lastWifiStatus);
     wifiSsidDOM.innerText = this.ssid;
     wifiIpDOM.innerText = this.wifiIP;
+    softAPStatusDOM.innerText = this.softAPStatus === 'true' ? 'enabled' : 'disabled';
+
+    if (this.softAPStatus === 'true') {
+      [].forEach.call(softAPDetailsDOMs, function (el) { el.classList.remove('hidden'); });
+    } else {
+      [].forEach.call(softAPDetailsDOMs, function (el) { el.classList.add('hidden'); });
+    }
+
+    softAPssidDOM.innerText = this.softAPssid;
+    softAPIPDom.innerText = this.softAPIP;
+    softAPClientsDom.innerText = this.softAPClientsNumber;
   };
 
   var fetchStatusLoop = function() {
@@ -94,6 +108,11 @@
           this.lastWifiStatus = status.wifi.lastStatus;
           this.wifiIP = status.wifi.localIP;
           this.ssid = status.wifi.ssid;
+
+          this.softAPStatus = status.softAP.enabled;
+          this.softAPssid = status.softAP.ssid;
+          this.softAPIP = status.softAP.ip;
+          this.softAPClientsNumber = status.softAP.clients;
 
           updateDocument();
           setTimeout(fetchStatusLoop, 5000);

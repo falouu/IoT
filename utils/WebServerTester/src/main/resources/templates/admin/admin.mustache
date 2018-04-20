@@ -72,6 +72,34 @@
             </td>
             <td>{{data.ssid}}</td>
           </tr>
+          <tr>
+            <td><label for="softAPssid">softAPssid: </label></td>
+            <td>
+              <input type="text" id="softAPssid" name="softAPssid" value="{{data.softAPssid}}"/>
+            </td>
+            <td>{{data.softAPssid}}</td>
+          </tr>
+          <tr>
+            <td><label for="softAPenabled">softAPenabled: </label></td>
+            <td>
+              <input type="text" id="softAPenabled" name="softAPenabled" value="{{data.softAPenabled}}"/>
+            </td>
+            <td>{{data.softAPenabled}}</td>
+          </tr>
+          <tr>
+            <td><label for="softAPIP">softAPIP: </label></td>
+            <td>
+              <input type="text" id="softAPIP" name="softAPIP" value="{{data.softAPIP}}"/>
+            </td>
+            <td>{{data.softAPIP}}</td>
+          </tr>
+          <tr>
+            <td><label for="softAPClients">softAPClients: </label></td>
+            <td>
+              <input type="text" id="softAPClients" name="softAPClients" value="{{data.softAPClients}}"/>
+            </td>
+            <td>{{data.softAPClients}}</td>
+          </tr>
         </table>
 
         <input type="submit" value="Apply"/>
@@ -144,13 +172,26 @@
           'localIP': '',
           'ssid': ''
         },
-        'fully connected, no soft AP': {
-            'wifiStatus': 'WL_CONNECTED',
-            'lastWifiStatus': 'WL_CONNECTED',
-            'localIP': '192.168.0.101',
-            'ssid': 'Schynet-8ghz'
+        'fully connected, soft AP disabled': {
+          'wifiStatus': 'WL_CONNECTED',
+          'lastWifiStatus': 'WL_CONNECTED',
+          'localIP': '192.168.0.101',
+          'ssid': 'Schynet-8ghz',
+          'softAPenabled': 'false',
+          'softAPssid': '',
+          'softAPIP': '0.0.0.0',
+          'softAPClients': 0
         },
-        'fully connected + soft AP': {}
+        'fully connected + soft AP': {
+          'wifiStatus': 'WL_CONNECTED',
+          'lastWifiStatus': 'WL_CONNECTED',
+          'localIP': '192.168.0.101',
+          'ssid': 'Schynet-8ghz',
+          'softAPenabled': 'true',
+          'softAPssid': 'NODE_MCU',
+          'softAPIP': '192.168.0.1',
+          'softAPClients': 1
+        },
     };
 
     let selectDOM = document.getElementById('preset-select');
@@ -169,6 +210,11 @@
       setValue(document.getElementById('lastWifiStatus'), preset['lastWifiStatus']);
       setValue(document.getElementById('localIP'), preset['localIP']);
       setValue(document.getElementById('ssid'), preset['ssid']);
+
+      setValue(document.getElementById('softAPenabled'), preset['softAPenabled']);
+      setValue(document.getElementById('softAPssid'), preset['softAPssid']);
+      setValue(document.getElementById('softAPIP'), preset['softAPIP']);
+      setValue(document.getElementById('softAPClients'), preset['softAPClients']);
     }
 
   };
