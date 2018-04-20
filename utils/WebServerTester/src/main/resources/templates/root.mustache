@@ -41,7 +41,7 @@
   };
 
   var setLoading = function() {
-    var elems = document.querySelector("#current-wifi-status, #current-soft-ap-status");
+    var elems = document.querySelectorAll("#current-wifi-status, #current-soft-ap-status");
     var length = elems.length;
     for (var index = 0; index < length; index++) {
         elems[index].innerText = "Loading...";
@@ -50,7 +50,7 @@
   };
 
   var unsetLoading = function() {
-    var elems = document.querySelector("#current-wifi-status, #current-soft-ap-status");
+    var elems = document.querySelectorAll("#current-wifi-status, #current-soft-ap-status");
     var length = elems.length;
     for (var index = 0; index < length; index++) {
       elems[index].classList.remove("loading-text")

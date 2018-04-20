@@ -1,6 +1,7 @@
 package pl.mfalkowski.NodeMCUtests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.CaseFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,6 +12,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.server.HandlerFunction;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -25,6 +27,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -78,6 +81,8 @@ public class NodeMcuTestsApplication {
 	    String softAPenabled;
 	    String softAPIP;
 	    int softAPClients;
+
+	    int statusDelayMs;
     }
 
     static class State {
@@ -91,6 +96,9 @@ public class NodeMcuTestsApplication {
 	    String softAPenabled = "false";
 	    String softAPIP = "0.0.0.0";
 	    int softAPClients = 0;
+
+
+	    int statusDelayMs = 0;
     }
 
     static class Status {
@@ -139,7 +147,7 @@ public class NodeMcuTestsApplication {
                     .doOnNext(s -> s.softAP.ip = state.softAPIP)
                     .doOnNext(s -> s.softAP.clients = state.softAPClients),
                 Status.class
-            );
+            ).delayElement(Duration.ofMillis(state.statusDelayMs));
 
 
 	private HandlerFunction<ServerResponse> connectHandler =
@@ -191,6 +199,8 @@ public class NodeMcuTestsApplication {
                 .doOnNext(data -> data.softAPIP = state.softAPIP)
                 .doOnNext(data -> data.softAPClients = state.softAPClients)
 
+                .doOnNext(data -> data.statusDelayMs = state.statusDelayMs)
+
                 .flatMap(data -> getTemplateNames()
                     .collectList()
                     .doOnNext(templateNames -> data.templateNames = templateNames)
@@ -211,6 +221,7 @@ public class NodeMcuTestsApplication {
                 .doOnNext(form -> state.softAPssid = form.getFirst("softAPssid"))
                 .doOnNext(form -> state.softAPIP = form.getFirst("softAPIP"))
                 .doOnNext(form -> state.softAPClients = Integer.parseInt(form.getFirst("softAPClients")))
+                .doOnNext(form -> state.statusDelayMs = Integer.parseInt(form.getFirst("statusDelayMs")))
                 .then(ServerResponse.seeOther(URI.create("/admin")).build());
 
 	private HandlerFunction<ServerResponse> adminGetTemplateHandler =
@@ -265,7 +276,8 @@ public class NodeMcuTestsApplication {
             .map(filename -> filename.substring(0, filename.lastIndexOf('.')));
     }
 
-    private static Pattern templateLinePattern = Pattern.compile("^(?<prefix>\\s*)(?<content>\\S.*)?$");
+    private final static Pattern templateLinePattern = Pattern.compile("^(?<prefix>\\s*)(?<content>\\S.*)?$");
+    private final static Pattern blockContentPattern = Pattern.compile("^\\{\\{>\\s*(?<block>\\S+)\\s*\\}\\}$");
 
     private Mono<String> getTemplate(String template) {
 
@@ -294,7 +306,14 @@ public class NodeMcuTestsApplication {
                 if (content == null || content.isEmpty()) {
                     return "";
                 }
-                return "    " + prefix + "\"" + content + "\"";
+                var blockMatcher = blockContentPattern.matcher(content);
+                if (blockMatcher.matches()) {
+                    var block = blockMatcher.group("block");
+                    var blockCamelCase = CaseFormat.LOWER_UNDERSCORE.converterTo(CaseFormat.LOWER_CAMEL).convert(block);
+                    return "    " + prefix + "+ " + blockCamelCase + " +";
+                } else {
+                    return "    " + prefix + "\"" + content + "\"";
+                }
             })
             .filter(l -> !"".equals(l))
             .collect(Collectors.joining("\n", "", ";"));
