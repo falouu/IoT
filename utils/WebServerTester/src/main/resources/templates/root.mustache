@@ -11,16 +11,24 @@
   <tr class="soft-ap-details hidden"><td>Soft AP clients: </td><td id="soft-ap-clients"></td></tr>
 </table>
 <div style="padding-top: 5px">
-<form action="/connect" method="post" id="connect-form" style="display: none">
-    <label for="input_ssid">SSID: </label>
-    <input name="ssid" type="text" id="input_ssid" required />
-    <label for="input_password">Password: </label>
-    <input name="password" type="password" id="input_password" />
-    <input type="submit" value="Connect" />
-</form>
-<form action="/disconnect" method="post" id="disconnect-form" style="display: none">
-  <input type="submit" value="Disconnect">
-</form>
+  <form action="/connect" method="post" id="connect-form" style="display: none">
+      <label for="input_ssid">SSID: </label>
+      <input name="ssid" type="text" id="input_ssid" required />
+      <label for="input_password">Password: </label>
+      <input name="password" type="password" id="input_password" />
+      <input type="submit" value="Connect" />
+  </form>
+  <div>
+    <form class="inline" action="/disconnect" method="post" id="disconnect-form" style="display: none">
+      <input type="submit" value="Disconnect">
+    </form>
+    <form class="inline" action="/disable-ap" method="post" id="disable-ap-form" style="display: none">
+      <input type="submit" value="Disable Soft AP">
+    </form>
+    <form class="inline" action="/enable-ap" method="post" id="enable-ap-form" style="display: none">
+      <input class="inline" type="submit" value="Enable Soft AP">
+    </form>
+  </div>
 </div>
 <script>
   {{> fetch_status_js }}
@@ -64,6 +72,8 @@
 
     var connectFormDOM = document.getElementById('connect-form');
     var disconnectFormDOM = document.getElementById('disconnect-form');
+    var disableSoftAPFormDOM = document.getElementById('disable-ap-form');
+    var enableSoftAPFormDOM = document.getElementById('enable-ap-form');
 
     var wifiDetailsDOMs = document.getElementsByClassName('wifi-details');
     var softAPDetailsDOMs = document.getElementsByClassName('soft-ap-details');
@@ -91,8 +101,12 @@
     softAPStatusDOM.innerText = this.softAPStatus === 'true' ? 'enabled' : 'disabled';
 
     if (this.softAPStatus === 'true') {
+      disableSoftAPFormDOM.style.display = null;
+      enableSoftAPFormDOM.style.display = 'none';
       [].forEach.call(softAPDetailsDOMs, function (el) { el.classList.remove('hidden'); });
     } else {
+      disableSoftAPFormDOM.style.display = 'none';
+      enableSoftAPFormDOM.style.display = null;
       [].forEach.call(softAPDetailsDOMs, function (el) { el.classList.add('hidden'); });
     }
 

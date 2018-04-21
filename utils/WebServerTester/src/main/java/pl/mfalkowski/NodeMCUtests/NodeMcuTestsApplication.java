@@ -38,7 +38,6 @@ import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NON_PRIVATE;
 import static com.fasterxml.jackson.annotation.PropertyAccessor.FIELD;
-import static org.springframework.web.reactive.function.BodyInserters.fromFormData;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
@@ -243,12 +242,43 @@ public class NodeMcuTestsApplication {
                             )
                 );
 
+	private HandlerFunction<ServerResponse> disconnectHandler =
+        request ->
+            Mono.just(request)
+                .doOnNext(r -> this.state.status = "WL_IDLE_STATUS")
+                .doOnNext(r -> this.state.ssid = "")
+                .doOnNext(r -> this.state.localIP = "0.0.0.0")
+                .doOnNext(r -> this.state.lastConnectionStatus = "WL_IDLE_STATUS")
+                .then(ServerResponse.seeOther(URI.create("/")).build());
+
+	private HandlerFunction<ServerResponse> disableAPHandler =
+        request ->
+            Mono.just(request)
+                .doOnNext(r -> this.state.softAPenabled = "false")
+                .doOnNext(r -> this.state.softAPClients = 0)
+                .doOnNext(r -> this.state.softAPIP = "0.0.0.0")
+                .doOnNext(r -> this.state.softAPssid = "")
+                .then(ServerResponse.seeOther(URI.create("/")).build());
+
+	private HandlerFunction<ServerResponse> enableAPHandler =
+        request ->
+            Mono.just(request)
+                .doOnNext(r -> this.state.softAPenabled = "true")
+                .doOnNext(r -> this.state.softAPClients = 1)
+                .doOnNext(r -> this.state.softAPIP = "192.168.0.2")
+                .doOnNext(r -> this.state.softAPssid = "NODE_MCU")
+                .then(ServerResponse.seeOther(URI.create("/")).build());
+
     @Bean
     RouterFunction<ServerResponse> routes()  {
 		return route(GET("/status"), statusHandler)
 			.and(route(GET("/"), request -> ServerResponse.ok().render("root")))
             .and(route(GET("/connecting"), request -> ServerResponse.ok().render("connecting")))
 			.and(route(POST("/connect"), connectHandler))
+            .and(route(POST("/disconnect"), disconnectHandler))
+            .and(route(POST("/disable-ap"), disableAPHandler))
+            .and(route(POST("/enable-ap"), enableAPHandler))
+
             .and(route(GET("/admin"), adminGetHandler))
             .and(route(POST("/admin"), adminPostHandler))
             .and(route(GET("/admin/template"), adminGetTemplateHandler));

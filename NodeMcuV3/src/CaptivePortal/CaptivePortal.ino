@@ -112,7 +112,37 @@ void handleConnect() {
   return;
 }
 
-String getPage(String content) {
+void handleDisconnect() {
+  logRequest();
+  WiFi.disconnect();
+  ssid = "";
+  password = "";
+  lastConnectionStatus = WL_IDLE_STATUS;
+  
+  server.sendHeader("Location", "/");
+  server.send(303);
+}
+void handleDisableAP() {
+  logRequest();
+  WiFi.softAPdisconnect(true);
+  
+  server.sendHeader("Location", "/");
+  server.send(303);
+}
+void handleEnableAP() {
+  logRequest();
+  enableSoftAP();
+  
+  server.sendHeader("Location", "/");
+  server.send(303);
+}
+
+void enableSoftAP() {
+  WiFi.softAPConfig(apIP, apIP, netMsk);
+  WiFi.softAP(softAP_ssid, softAP_password);
+}
+
+const String getPage(const String content) {
   const static String header = ""
     "<!DOCTYPE html>"
     "<html lang=\"en\">"
@@ -123,6 +153,14 @@ String getPage(String content) {
       "<style>"
         "input {"
           "display: block;"
+        "}"
+        "input[type=submit] {"
+          "display: inline;"
+          "margin-right: 3px;"
+          "margin-top: 5px;"
+        "}"
+        ".inline {"
+          "display: inline;"
         "}"
         ".data-ssid {"
           "font-weight: bold;"
@@ -288,16 +326,24 @@ void handleRoot() {
       "<tr class=\"soft-ap-details hidden\"><td>Soft AP clients: </td><td id=\"soft-ap-clients\"></td></tr>"
     "</table>"
     "<div style=\"padding-top: 5px\">"
-    "<form action=\"/connect\" method=\"post\" id=\"connect-form\" style=\"display: none\">"
-        "<label for=\"input_ssid\">SSID: </label>"
-        "<input name=\"ssid\" type=\"text\" id=\"input_ssid\" required />"
-        "<label for=\"input_password\">Password: </label>"
-        "<input name=\"password\" type=\"password\" id=\"input_password\" />"
-        "<input type=\"submit\" value=\"Connect\" />"
-    "</form>"
-    "<form action=\"/disconnect\" method=\"post\" id=\"disconnect-form\" style=\"display: none\">"
-      "<input type=\"submit\" value=\"Disconnect\">"
-    "</form>"
+      "<form action=\"/connect\" method=\"post\" id=\"connect-form\" style=\"display: none\">"
+          "<label for=\"input_ssid\">SSID: </label>"
+          "<input name=\"ssid\" type=\"text\" id=\"input_ssid\" required />"
+          "<label for=\"input_password\">Password: </label>"
+          "<input name=\"password\" type=\"password\" id=\"input_password\" />"
+          "<input type=\"submit\" value=\"Connect\" />"
+      "</form>"
+      "<div>"
+        "<form class=\"inline\" action=\"/disconnect\" method=\"post\" id=\"disconnect-form\" style=\"display: none\">"
+          "<input type=\"submit\" value=\"Disconnect\">"
+        "</form>"
+        "<form class=\"inline\" action=\"/disable-ap\" method=\"post\" id=\"disable-ap-form\" style=\"display: none\">"
+          "<input type=\"submit\" value=\"Disable Soft AP\">"
+        "</form>"
+        "<form class=\"inline\" action=\"/enable-ap\" method=\"post\" id=\"enable-ap-form\" style=\"display: none\">"
+          "<input class=\"inline\" type=\"submit\" value=\"Enable Soft AP\">"
+        "</form>"
+      "</div>"
     "</div>"
     "<script>"
       + fetchStatusJs +
@@ -336,6 +382,8 @@ void handleRoot() {
         "var wifiIpDOM = document.getElementById('wifi-ip');"
         "var connectFormDOM = document.getElementById('connect-form');"
         "var disconnectFormDOM = document.getElementById('disconnect-form');"
+        "var disableSoftAPFormDOM = document.getElementById('disable-ap-form');"
+        "var enableSoftAPFormDOM = document.getElementById('enable-ap-form');"
         "var wifiDetailsDOMs = document.getElementsByClassName('wifi-details');"
         "var softAPDetailsDOMs = document.getElementsByClassName('soft-ap-details');"
         "var softAPStatusDOM = document.getElementById('current-soft-ap-status');"
@@ -357,8 +405,12 @@ void handleRoot() {
         "wifiIpDOM.innerText = this.wifiIP;"
         "softAPStatusDOM.innerText = this.softAPStatus === 'true' ? 'enabled' : 'disabled';"
         "if (this.softAPStatus === 'true') {"
+          "disableSoftAPFormDOM.style.display = null;"
+          "enableSoftAPFormDOM.style.display = 'none';"
           "[].forEach.call(softAPDetailsDOMs, function (el) { el.classList.remove('hidden'); });"
         "} else {"
+          "disableSoftAPFormDOM.style.display = 'none';"
+          "enableSoftAPFormDOM.style.display = null;"
           "[].forEach.call(softAPDetailsDOMs, function (el) { el.classList.add('hidden'); });"
         "}"
         "softAPssidDOM.innerText = this.softAPssid;"
@@ -556,8 +608,7 @@ void setup() {
   Serial.println();
   Serial.print("Configuring access point... ");
 
-  WiFi.softAPConfig(apIP, apIP, netMsk);
-  WiFi.softAP(softAP_ssid, softAP_password);
+  enableSoftAP();
   delay(500); // Without delay I've seen the IP address blank
   Serial.print("AP IP address: ");
   Serial.println(WiFi.softAPIP());
@@ -568,6 +619,9 @@ void setup() {
 
   server.on("/", HTTP_GET, handleRoot);
   server.on("/connect", HTTP_POST, handleConnect);
+  server.on("/disconnect", HTTP_POST, handleDisconnect);
+  server.on("/disable-ap", HTTP_POST, handleDisableAP);
+  server.on("/enable-ap", HTTP_POST, handleEnableAP);
   server.on("/connecting", HTTP_GET, handleConnecting);
   server.on("/status", HTTP_GET, handleStatus);
   server.onNotFound(handleNotFound);
