@@ -1,0 +1,2 @@
+2018-05-06`
+Zmienne globalne używają 44060 bajtów (53%) pamięci dynamicznej, pozostawiając 37860 bajtów dla zmiennych lokalnych. Maksimum to 81920 bajtów.
