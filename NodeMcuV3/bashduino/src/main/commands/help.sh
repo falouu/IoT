@@ -37,6 +37,9 @@ run() {
         _setup_command "${command}"
 
         echo "Help for command '${command}':"
+        echo
+        echo "  ${COMMAND_HELP[${command}]}"
+        echo
         echo "  Options:"
         map.get_keys_or_empty PARAMS
         local param_ids=( "${RETURN_VALUE[@]}" )

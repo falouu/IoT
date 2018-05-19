@@ -21,6 +21,8 @@
 
 * Language reference: https://www.arduino.cc/reference/en/
 * More technical reference: https://github.com/arduino/Arduino/wiki
+* Specification of third-party platforms format:
+    * https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5-3rd-party-Hardware-specification 
 
 
 

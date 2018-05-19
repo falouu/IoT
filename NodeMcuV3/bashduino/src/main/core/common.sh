@@ -539,6 +539,17 @@ repeat() {
     done
 }
 
+# Docs:
+#   load bashduino dependencies into DEPENDENCIES map
+#   For safety reasons, DEPENDENCIES map should be unset when it is no longer needed
+#
+# Returns:
+#   command status code
+get_dependencies() {
+    source "${BASHDUINO_ROOT_DIR}/dependencies.sh"
+    return $?
+}
+
 ################### <ERROR CODES> #######################################
 declare -A ERROR_CODES
 
@@ -570,6 +581,8 @@ ERROR_CODES["COMMON/FILE_NOT_FOUND"]=25
 ERROR_CODES["SKETCHES/TOO_MANY_SKETCHES"]=26
 ERROR_CODES["COMMON/VAR_INVALID_FORMAT"]=27
 ERROR_CODES["COMMON/INVALID_OPTION_COMBINATION"]=28
+ERROR_CODES["DEPENDENCIES/INSTALLATION_FAILED"]=29
+ERROR_CODES["GENERAL/CANNOT_CREATE_DIRECTORY"]=30
 
 
 ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]=127

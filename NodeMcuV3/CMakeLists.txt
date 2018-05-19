@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)   # CMake version check
+cmake_minimum_required(VERSION 3.10)  # CMake version check
 project(NodeMcuV3)                    # Create project
 set(CMAKE_CXX_STANDARD 11)            # Enable c++11 standard
 

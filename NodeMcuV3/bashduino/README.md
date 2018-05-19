@@ -6,13 +6,13 @@
 
 ## Config
 
-* `.idea/workshpace.xml`:
+* `.idea/workspace.xml`:
 
     ```
     <?xml version="1.0" encoding="UTF-8"?>
     <project version="4">
       <component name="NamedScopeManager">
-        <scope name="not lib" pattern="!file[IoT]:NodeMcuV3/bashduino/src/main/lib//*" />
+        <scope name="not lib" pattern="!file[NodeMcuV3]:bashduino/src/main/lib//*" />
       </component>
     </project>
     ```

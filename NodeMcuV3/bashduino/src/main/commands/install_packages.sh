@@ -13,6 +13,18 @@ setup() {
 run() {
     import "bashduino/snapshots/check_required_snapshots" as "check_required_snapshots"
     import "bashduino/indexes/get_required_indexes" as "get_required_indexes"
+    import "bashduino/dependencies/check_required_dependencies" as "check_required_dependencies"
+
+    install_dependencies_if_required() {
+        check_required_dependencies
+        success || {
+            log "Installing dependencies..."
+            run_command "install_dependencies"
+            success || {
+                die "Installing dependencies failed!" "DEPENDENCIES/INSTALLATION_FAILED"
+            }
+        }
+    }
 
     create_snapshot_if_required() {
         check_required_snapshots
@@ -55,6 +67,7 @@ run() {
 
     }
 
+    install_dependencies_if_required
     create_snapshot_if_required
 
     mkdir -p "${CONFIG_DIR}"

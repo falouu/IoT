@@ -2,17 +2,19 @@
 # bash 4.3 required
 #
 # required system commands:
-#   tar, mv, cp
+#   tar, mv, cp, curl
 #
 # Tested on Arduino 1.8.5
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR="${DIR}"
-BASHDUINO_SRC_ROOT_DIR="${ROOT_DIR}/bashduino/src/main"
+BASHDUINO_ROOT_DIR="${ROOT_DIR}/bashduino"
+BASHDUINO_SRC_ROOT_DIR="${BASHDUINO_ROOT_DIR}/src/main"
 CONFIG_DIST_FILE="${ROOT_DIR}/config/config.dist.sh"
 
 source "${DIR}/config/config.sh"
 source "${CONFIG_DIST_FILE}"
+source "${BASHDUINO_SRC_ROOT_DIR}/core/variables_initializer.sh"
 source "${BASHDUINO_SRC_ROOT_DIR}/core/common.sh"
 
 COMMANDS=(
@@ -20,6 +22,7 @@ COMMANDS=(
 	"shortlist"
 	"ide"
 	"install_packages"
+	"install_dependencies"
 	"test"
 	"shell"
 	"help"
@@ -29,6 +32,7 @@ declare -A COMMAND_HELP
 COMMAND_HELP["snapshot"]="create snapshot of files required to download"
 COMMAND_HELP["ide"]="run properly configured Arduino IDE"
 COMMAND_HELP["install_packages"]="Install required packages"
+COMMAND_HELP["install_dependencies"]="Install required bashduino dependencies"
 COMMAND_HELP["shortlist"]="list all commands"
 COMMAND_HELP["test"]="run tests"
 COMMAND_HELP["shell"]="run friendly shell with autocompletion"
@@ -38,6 +42,7 @@ declare -A COMMAND_FILES
 COMMAND_FILES["snapshot"]="create_snapshot_arduino_ide_config.sh"
 COMMAND_FILES["ide"]="ide.sh"
 COMMAND_FILES["install_packages"]="install_packages.sh"
+COMMAND_FILES["install_dependencies"]="install_dependencies.sh"
 COMMAND_FILES["shortlist"]="shortlist.sh"
 COMMAND_FILES["test"]="test.sh"
 COMMAND_FILES["shell"]="shell.sh"
