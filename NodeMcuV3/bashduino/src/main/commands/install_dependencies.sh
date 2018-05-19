@@ -5,7 +5,7 @@
 # Output variables:
 #   PARAMS | map | define params for command
 setup() {
-   required_variables "ARTIFACTS_DIR"
+   required_variables "DEPENDENCIES_DIR"
 }
 
 # Input variables
@@ -21,7 +21,7 @@ run() {
         require "$3"
         local dep_url="$3"
 
-        local dep_file_dir="${ARTIFACTS_DIR}/bashduino-dependencies/${dep_id}"
+        local dep_file_dir="${DEPENDENCIES_DIR}/${dep_id}"
         local dep_file_abs="${dep_file_dir}/${dep_file}"
 
         mkdir -p "${dep_file_dir}" || die "Cannot create directory '${dep_file_dir}'" "GENERAL/CANNOT_CREATE_DIRECTORY"

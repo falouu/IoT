@@ -11,7 +11,6 @@
 #   die only on unexpected error
 #
 
-required_variables "ARTIFACTS_DIR"
 import "bashduino/dependencies/is_dependency_installed" as "is_dependency_installed"
 
 get_dependencies

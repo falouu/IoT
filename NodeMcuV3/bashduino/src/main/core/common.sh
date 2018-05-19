@@ -550,6 +550,40 @@ get_dependencies() {
     return $?
 }
 
+#
+#
+# Output:
+#   dependency output
+# Exit policy:
+#   exit when dependency not found or on unexpected error
+# Returns:
+#  <dependency return code> |
+call_dependency() {
+    required_variables "DEPENDENCIES_DIR"
+    require "$1"
+    local dep_id="$1"
+    require "$2"
+    local cmd="$2"
+
+    get_dependencies
+    map.get_value_or_die DEPENDENCIES["${dep_id}"][file]
+    local dep_file="${RETURN_VALUE}"
+    map.unset DEPENDENCIES
+
+    local dep_dir="${DEPENDENCIES_DIR}/${dep_id}"
+
+    [[ -d "${dep_dir}" ]] || die "dependency '${dep_id}' directory not found!" "DEPENDENCIES/NOT_FOUND"
+
+    local cmd_resolved="${cmd/%depfile%/${dep_file}}"
+
+    pushd "${dep_dir}"
+        eval "${cmd_resolved}"
+        local return_code=$?
+    popd
+
+    return ${return_code}
+}
+
 ################### <ERROR CODES> #######################################
 declare -A ERROR_CODES
 
@@ -583,6 +617,8 @@ ERROR_CODES["COMMON/VAR_INVALID_FORMAT"]=27
 ERROR_CODES["COMMON/INVALID_OPTION_COMBINATION"]=28
 ERROR_CODES["DEPENDENCIES/INSTALLATION_FAILED"]=29
 ERROR_CODES["GENERAL/CANNOT_CREATE_DIRECTORY"]=30
+ERROR_CODES["DEPENDENCIES/NOT_FOUND"]=31
+ERROR_CODES["GET_SNAPSHOT_DIRS/PLATFORM_DEFINITION_NOT_FOUND"]=32
 
 
 ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]=127

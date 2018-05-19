@@ -14,14 +14,14 @@
 #   die only on unexpected error
 #
 
-required_variables "ARTIFACTS_DIR"
+required_variables "DEPENDENCIES_DIR"
 
 require "$1"
 local dep_id="$1"
 require "$2"
 local dep_file="$2"
 
-local dep_file_abs="${ARTIFACTS_DIR}/bashduino-dependencies/${dep_id}/${dep_file}"
+local dep_file_abs="${DEPENDENCIES_DIR}/${dep_id}/${dep_file}"
 if [[ -f "${dep_file_abs}" ]]; then
     return 0
 else
