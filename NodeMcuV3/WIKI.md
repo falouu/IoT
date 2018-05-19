@@ -41,6 +41,10 @@
 
 * Main docs: https://github.com/esp8266/Arduino/tree/master/doc
 
+### Info
+* C++ code is compiled using `c++11` standard (see `esp8266/hardware/esp8266/2.4.1/platform.txt` file and search 
+  for `compiler.cpp.flags` property, you will see `-std=c++11` option) 
+
 ### Sources
 
 Sources for API are defined in: https://github.com/esp8266/Arduino/blob/master/cores/esp8266/ 
