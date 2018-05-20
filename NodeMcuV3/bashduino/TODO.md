@@ -9,4 +9,8 @@
     one file with only `eval` function in it? And it will `eval` any argument
     it receive. To consider.
 
-* Autocompletion for arguments
+* autocompletion for command parameters values (not only parameter names)
+
+# DONE
+
+* Autocompletion for parameter names
