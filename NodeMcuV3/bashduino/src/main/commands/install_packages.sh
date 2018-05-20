@@ -5,7 +5,7 @@
 # Output variables:
 #   PARAMS | map | define params for command
 setup() {
-    required_variables "SNAPSHOT_DIRS" "CONFIG_DIR" "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR"
+    required_variables "CONFIG_DIR" "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR"
 }
 
 # Input variables
@@ -14,6 +14,7 @@ run() {
     import "bashduino/snapshots/check_required_snapshots" as "check_required_snapshots"
     import "bashduino/indexes/get_required_indexes" as "get_required_indexes"
     import "bashduino/dependencies/check_required_dependencies" as "check_required_dependencies"
+    import "bashduino/snapshots/get_snapshot_dirs" as "get_snapshot_dirs"
 
     install_dependencies_if_required() {
         check_required_dependencies
@@ -72,7 +73,10 @@ run() {
 
     mkdir -p "${CONFIG_DIR}"
 
-    for snapshot_dir in "${SNAPSHOT_DIRS[@]}"; do
+    get_snapshot_dirs
+    local snapshot_dirs=( "${RETURN_VALUE[@]}" )
+
+    for snapshot_dir in "${snapshot_dirs[@]}"; do
         local snapshot_dir_abs="${CONFIG_DIR}/${snapshot_dir}"
         [[ -d "${snapshot_dir_abs}" ]] || {
             log "Installing package '${snapshot_dir}' from snapshots..."

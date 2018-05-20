@@ -5,7 +5,7 @@
 # Output variables:
 #   PARAMS | map | define params for command
 setup() {
-    required_variables "ARDUINO_CMD" "PACKAGE" "ARCH" "VERSION" "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR" "SNAPSHOT_DIRS" "CONFIG_DIR" "BOARDSMANAGER_URL"
+    required_variables "ARDUINO_CMD" "PACKAGE" "ARCH" "VERSION" "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR" "CONFIG_DIR" "BOARDSMANAGER_URL"
 
 #  TODO: po co to było?
 #    map.set PARAMS[configDir][name] "config-dir"
@@ -20,6 +20,7 @@ setup() {
 run() {
     import "bashduino/packages/check_required_packages" as "check_required_packages"
     import "bashduino/indexes/get_required_indexes" as "get_required_indexes"
+    import "bashduino/snapshots/get_snapshot_dirs" as "get_snapshot_dirs"
 
     arduino_config_tmp_dir="$(mktemp -d)"
     debug "Downloading packages to temporary directory: '${arduino_config_tmp_dir}'..."
@@ -76,7 +77,10 @@ run() {
         popd
     }
 
-    for snapshot_dir in "${SNAPSHOT_DIRS[@]}"; do
+    get_snapshot_dirs
+    local snapshot_dirs=( "${RETURN_VALUE[@]}" )
+
+    for snapshot_dir in "${snapshot_dirs[@]}"; do
         log "Creating snapshot of dir '${snapshot_dir}'..."
         archive_package "${snapshot_dir}"
     done

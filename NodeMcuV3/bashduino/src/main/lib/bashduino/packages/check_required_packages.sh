@@ -9,13 +9,17 @@
 # Exit policy:
 #   die, if checks fails
 #
-required_variables "SNAPSHOT_DIRS" "CONFIG_DIR"
+required_variables "CONFIG_DIR"
 import "bashduino/indexes/check_required_indexes" as "check_required_indexes"
+import "bashduino/snapshots/get_snapshot_dirs" as "get_snapshot_dirs"
 
 local config_dir="${CONFIG_DIR}"
 [[ -z "$1" ]] || config_dir="$1"
 
-for snapshot_dir in "${SNAPSHOT_DIRS[@]}"; do
+get_snapshot_dirs
+local snapshot_dirs=( "${RETURN_VALUE[@]}" )
+
+for snapshot_dir in "${snapshot_dirs[@]}"; do
 	#echo "DEBUG: checking dir: ${snapshot_dir}"
 	local snapshot_dir_abs="${config_dir}/${snapshot_dir}"
 	[[ -e "${snapshot_dir_abs}" ]] || {

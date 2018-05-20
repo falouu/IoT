@@ -12,10 +12,14 @@
 #   exit only on unexpected error
 #
 
-required_variables "SNAPSHOT_DIRS" "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR"
+required_variables "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR"
 import "bashduino/indexes/check_required_indexes" as "check_required_indexes"
+import "bashduino/snapshots/get_snapshot_dirs" as "get_snapshot_dirs"
 
-for snapshot_dir in "${SNAPSHOT_DIRS[@]}"; do
+get_snapshot_dirs
+local snapshot_dirs=( "${RETURN_VALUE[@]}" )
+
+for snapshot_dir in "${snapshot_dirs[@]}"; do
 	local snapshot_file_abs="${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}/${snapshot_dir}/archive.tar.bz2"
 	[[ -f "${snapshot_file_abs}" ]] || {
 		return 1
