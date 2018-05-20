@@ -4,14 +4,19 @@
 
 node_mcu_v3_run_completions()
 {
-  if [[ ${#COMP_WORDS[@]} -ne 2 ]]; then
-  	return
+  if [[ ${#COMP_WORDS[@]} -eq 2 ]]; then
+      local options="$(bash "${ROOT_DIR}/run.sh" shortlist)"
+  elif [[ ${#COMP_WORDS[@]} -eq 3 ]]; then
+      local command="${COMP_WORDS[1]}"
+      local options="$(bash "${ROOT_DIR}/run.sh" help --command ${command} --params-only)"
+  else
+      return
   fi
-  local options="$(bash "${ROOT_DIR}/run.sh" shortlist)"
+
   local cur
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
   COMPREPLY=( $(compgen -W "${options}" -- ${cur}) )
-  return 0
+
 }
 complete -F node_mcu_v3_run_completions "run.sh"

@@ -11,6 +11,10 @@ setup() {
     map.set PARAMS[command][required] "false"
     map.set PARAMS[command][valuePlaceholder] "command"
     map.set PARAMS[command][defaultDescription] "show general usage"
+
+    map.set PARAMS[paramsOnly][name] "params-only"
+    map.set PARAMS[paramsOnly][description] "print only parameter names, separated by space"
+    map.set PARAMS[paramsOnly][required] "false"
 }
 
 # Input variables
@@ -18,7 +22,7 @@ setup() {
 run() {
     _execute_help() {
         if [[ "${ARGS[command]}" ]]; then
-            _execute_help_for_command "${ARGS[command]}"
+            _execute_help_for_command "${ARGS[command]}" "${ARGS[paramsOnly]}"
         else
             usage
         fi
@@ -27,6 +31,8 @@ run() {
     _execute_help_for_command() {
         require "$1"
         local command="$1"
+        local paramsOnly="$2"
+
         unset ARGS
         unset ARGS_RAW
         declare -A ARGS
@@ -36,11 +42,13 @@ run() {
         _validate_command "${command}"
         _setup_command "${command}"
 
-        echo "Help for command '${command}':"
-        echo
-        echo "  ${COMMAND_HELP[${command}]}"
-        echo
-        echo "  Options:"
+        if ! [[ "${paramsOnly}" ]]; then
+            echo "Help for command '${command}':"
+            echo
+            echo "  ${COMMAND_HELP[${command}]}"
+            echo
+            echo "  Options:"
+        fi
         map.get_keys_or_empty PARAMS
         local param_ids=( "${RETURN_VALUE[@]}" )
         for param_id in "${param_ids[@]}"; do
@@ -71,11 +79,18 @@ run() {
                 value_placeholder_string="<${param_value_placeholder}>"
             fi
 
-            map.set helpParams[items][${param_id}][spec] "--${param_name} ${value_placeholder_string}"
-            map.set helpParams[items][${param_id}][desc] "${param_description}"
-            map.set helpParams[items][${param_id}][params] "${param_required_string}"
+            if [[ "${paramsOnly}" ]]; then
+                printf "%s " "--${param_name}"
+            else
+                map.set helpParams[items][${param_id}][spec] "--${param_name} ${value_placeholder_string}"
+                map.set helpParams[items][${param_id}][desc] "${param_description}"
+                map.set helpParams[items][${param_id}][params] "${param_required_string}"
+            fi
         done
-        table.print helpParams | indent 3
+
+        if ! [[ "${paramsOnly}" ]]; then
+            table.print helpParams | indent 3
+        fi
     }
 
     _execute_help

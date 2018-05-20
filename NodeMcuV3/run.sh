@@ -172,7 +172,7 @@ _setup_command() {
     }
 
     map.set PARAMS[help][name] "help"
-    map.set PARAMS[help][description] "show help for command"
+    map.set PARAMS[help][description] "show help for this command"
     map.set PARAMS[help][required] "false"
 
     declare -A PARAM_BY_NAME
