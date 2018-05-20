@@ -315,5 +315,12 @@ run() {
         unset prefs
     }
 
+    test_get_snapshot_dirs() {
+        import "bashduino/snapshots/get_snapshot_dirs" as "get_snapshot_dirs"
+        get_snapshot_dirs
+        local snapshot_dirs=( "${RETURN_VALUE[@]}" )
+        printf "%s : \n\t%s\n" "test_get_snapshot_dirs" "$(declare -p snapshot_dirs)"
+    }
+
     run_tests
 }

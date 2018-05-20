@@ -45,6 +45,9 @@ success(){
     [[ "${code}" == "${ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]}" ]] && {
         die "Command not found error!" "SYSTEM/COMMAND_NOT_FOUND"
     }
+    [[ "${code}" == "${ERROR_CODES["SYSTEM/PIPE_CLOSED"]}" ]] && {
+        code=0
+    }
     return "${code}"
 }
 
@@ -574,11 +577,14 @@ call_dependency() {
 
     [[ -d "${dep_dir}" ]] || die "dependency '${dep_id}' directory not found!" "DEPENDENCIES/NOT_FOUND"
 
-    local cmd_resolved="${cmd/%depfile%/${dep_file}}"
+    local cmd_resolved="${cmd/\%depfile\%/$dep_file}"
 
     pushd "${dep_dir}"
         eval "${cmd_resolved}"
-        local return_code=$?
+        local return_code="$?"
+        [[ "${return_code}" == "${ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]}" ]] && {
+            errcho "Cannot execute dependency command: '${cmd_resolved}' - command not found"
+        }
     popd
 
     return ${return_code}
@@ -622,6 +628,7 @@ ERROR_CODES["GET_SNAPSHOT_DIRS/PLATFORM_DEFINITION_NOT_FOUND"]=32
 
 
 ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]=127
+ERROR_CODES["SYSTEM/PIPE_CLOSED"]=141
 
 
 ################### </ERROR CODES> ######################################
