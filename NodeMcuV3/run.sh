@@ -21,6 +21,7 @@ COMMANDS=(
 	"snapshot"
 	"shortlist"
 	"ide"
+	"clion"
 	"install_packages"
 	"install_dependencies"
 	"test"
@@ -31,6 +32,7 @@ COMMANDS=(
 declare -A COMMAND_HELP
 COMMAND_HELP["snapshot"]="create snapshot of files required to download"
 COMMAND_HELP["ide"]="run properly configured Arduino IDE"
+COMMAND_HELP["clion"]="run properly configured JetBrains CLion"
 COMMAND_HELP["install_packages"]="Install required packages"
 COMMAND_HELP["install_dependencies"]="Install required bashduino dependencies"
 COMMAND_HELP["shortlist"]="list all commands"
@@ -41,6 +43,7 @@ COMMAND_HELP["help"]="help for a given command. Type: 'help --command <command>'
 declare -A COMMAND_FILES
 COMMAND_FILES["snapshot"]="create_snapshot_arduino_ide_config.sh"
 COMMAND_FILES["ide"]="ide.sh"
+COMMAND_FILES["clion"]="clion.sh"
 COMMAND_FILES["install_packages"]="install_packages.sh"
 COMMAND_FILES["install_dependencies"]="install_dependencies.sh"
 COMMAND_FILES["shortlist"]="shortlist.sh"

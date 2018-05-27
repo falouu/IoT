@@ -6,3 +6,6 @@ if [[ "${ARTIFACTS_DIR}" ]]; then
     CACHE_DIR="${ARTIFACTS_DIR}/cache"
 fi
 
+BASHDUINO_EVAL_FILE=""
+BASHDUINO_EVAL_LINE_OFFSET=""
+

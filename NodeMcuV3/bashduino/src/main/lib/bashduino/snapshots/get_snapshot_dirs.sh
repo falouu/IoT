@@ -5,7 +5,7 @@
 # Docs:
 #   get snapshot dirs from boards manager json
 # Returns:
-#   0 check positive
+#   0  | if no error
 # RETURN_VALUE
 #   an array of snapshot dirs
 # Exit policy:
@@ -16,6 +16,7 @@ required_variables "CONFIG_DIR" "PACKAGE" "ARCH" "VERSION"
 
 import "bashduino/indexes/get_required_indexes" as "get_required_indexes"
 import "bashduino/cache/get_cache_file" as "get_cache_file"
+import "bashduino/snapshots/get_hardware_dir" "get_hardware_dir"
 
 
 get_cache_file "bashduino/snapshots/get_snapshots_dirs" "snapshots_dirs"
@@ -156,7 +157,10 @@ if [[ "${cache_exists}" != "true" ]]; then
         fi
     done <<< "${json_output}"
 
-    local SNAPSHOT_DIRS=( "packages/${PACKAGE}/hardware/${ARCH}/${VERSION}/" )
+    get_hardware_dir
+    local hardware_dir="${RETURN_VALUE}"
+
+    local SNAPSHOT_DIRS=( "${hardware_dir}" )
     for tool_index in "${!tools_names[@]}"; do
         SNAPSHOT_DIRS+=( "packages/${PACKAGE}/tools/${tools_names[${tool_index}]}/${tools_versions[${tool_index}]}/" )
     done

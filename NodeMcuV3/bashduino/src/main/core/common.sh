@@ -26,17 +26,52 @@ containsElement() {
   for e; do [[ "$e" == "$match" ]] && return 0; done
   return 1
 }
+
+# PARAMS:
+#   $1  | upstream caller
+# OUTPUT:
+#   caller string
+get_caller() {
+    if [[ "$1" ]]; then
+        local upstream_caller="$1"
+    else
+        local upstream_caller="$(caller)"
+    fi
+    local mcaller=""
+    if [[ "${BASHDUINO_EVAL_FILE}" ]]; then
+       mcaller="Function: '${BASHDUINO_EVAL_FILE}'"
+       local eval_line_pattern="^([0-9]+)[[:space:]].*"
+       if [[ "${upstream_caller}" =~ $eval_line_pattern ]]; then
+          local eval_line="${BASH_REMATCH[1]}"
+          if [[ "${BASHDUINO_EVAL_LINE_OFFSET}" ]]; then
+              eval_line="$(( ${eval_line} - ${BASHDUINO_EVAL_LINE_OFFSET} - 3 ))"
+          fi
+          mcaller+=", line ${eval_line}"
+       fi
+       mcaller+="; "
+    fi
+
+    mcaller+="${upstream_caller}"
+    printf "%s" "${mcaller}"
+}
+
+# Params:
+#   $1  message
+#   $2  error id
+#   $3  caller - optional
 die(){
   local message error_id
   message="$1"
   error_id="$2"
+  mcaller="$3"
   [[ -z "${message}" ]] && message="Unknown error"
   [[ -z "${error_id}" ]] && error_id="COMMON/UNKNOWN_ERROR"
+  [[ "${mcaller}" ]] || mcaller="$(caller)"
   containsElement "${error_id}" "${!ERROR_CODES[@]}" || {
     message="die(): Unknown error id: '${error_id}' (original error message: '${message}')"
     error_id="COMMON/UNKNOWN_ERROR_ID"
   }
-  errcho "${message} [$(caller)]"
+  errcho "${message} [${mcaller}]"
   exit "${ERROR_CODES[${error_id}]}";
 }
 
@@ -107,6 +142,8 @@ indent() {
 
 # Params:
 #   $1 value to check for existence
+#   $2 message when parameter missing - optional
+#   $3 caller - optional
 # Returns:
 #   null
 # Exit policy:
@@ -119,7 +156,12 @@ require() {
   else
     local message="$2"
   fi
-  [[ -z "${value}" ]] && die "${message}" "COMMON/MISSING_PARAM"
+  if [[ -z ${3+present} ]]; then
+    local mcaller="$(get_caller "$(caller)")"
+  else
+    local mcaller="$3"
+  fi
+  [[ -z "${value}" ]] && die "${message}" "COMMON/MISSING_PARAM" "${mcaller}"
 }
 
 # Params:
@@ -393,9 +435,9 @@ map._get_statement_from_segments() {
 # Returns:
 #   null
 import() {
-    require "$1"
-    require "$2"
-    require "$3"
+    require "$1" "missing first parameter to import statement" "$(get_caller "$(caller)")"
+    require "$2" "missing second parameter to import statement" "$(get_caller "$(caller)")"
+    require "$3" "missing third parameter to import statement" "$(get_caller "$(caller)")"
     [[ "$2" == "as" ]] || {
         die "improper use of import(). Second argument must be 'as'" "COMMON/INVALID_PARAM"
     }
@@ -408,11 +450,7 @@ import() {
         die "Cannot import: file '${function_abs_path}' does not exist" "COMMON/IMPORT_LIB_NOT_EXISTS"
     }
     local function_body="$(<${function_abs_path})"
-    eval "
-        ${target_alias}() {
-           ${function_body}
-        }
-    "
+    source "${BASHDUINO_SRC_ROOT_DIR}/core/import_eval.sh"
 }
 
 # Docs:
