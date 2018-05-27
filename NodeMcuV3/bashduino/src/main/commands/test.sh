@@ -322,5 +322,12 @@ run() {
         printf "%s : \n\t%s\n" "test_get_snapshot_dirs" "$(declare -p snapshot_dirs)"
     }
 
+    test_get_hardware_dir() {
+        import "bashduino/snapshots/get_hardware_dir" as "get_hardware_dir"
+        get_hardware_dir
+        local hardware_dir="${RETURN_VALUE}"
+        printf "Hardware dir: '%s'\n" "${hardware_dir}"
+    }
+
     run_tests
 }

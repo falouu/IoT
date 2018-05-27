@@ -16,7 +16,7 @@ required_variables "CONFIG_DIR" "PACKAGE" "ARCH" "VERSION"
 
 import "bashduino/indexes/get_required_indexes" as "get_required_indexes"
 import "bashduino/cache/get_cache_file" as "get_cache_file"
-import "bashduino/snapshots/get_hardware_dir" "get_hardware_dir"
+import "bashduino/snapshots/get_hardware_dir" as "get_hardware_dir"
 
 
 get_cache_file "bashduino/snapshots/get_snapshots_dirs" "snapshots_dirs"
