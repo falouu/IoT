@@ -12,13 +12,26 @@ setup() {
 #   ARGS | map | arguments values
 run() {
     import "bashduino/snapshots/get_hardware_dir" as "get_hardware_dir"
+    import "bashduino/sketches/get_sketches" as "get_sketches"
+    import "bashduino/sketches/get_sketch_file" as "get_sketch_file"
+
+    replace_prefix() {
+        require "$1"
+        local text="$1"
+        require "$2"
+        local prefix="$2"
+        local replacement="$3"
+
+        if [[ "${text#${prefix}}" != "${text}" ]]; then
+          text="${text/${prefix}/${replacement}}"
+        fi
+        printf "%s" "${text}"
+    }
 
     format_dir() {
-       local dirr="$1"
-       if [[ "${dirr#${HOME}/}" != "${dirr}" ]]; then
-         dirr="${dirr/${HOME}/\$ENV\{HOME\}}"
-       fi
-       printf "%s" "${dirr}"
+        require "$1"
+        local dirr="$1"
+        replace_prefix "${dirr}" "${HOME}/" "\$ENV{HOME}/"
     }
 
     get_hardware_dir
@@ -58,5 +71,24 @@ run() {
     log "Creating '${cmake_filename}' file..."
 
     local template_content="$(< "${custom_template_abs}")"
-    printf "%s" "${template_content/\%includes\%/${include_dirs_block}}" > "${cmake_abs}"
+
+    template_content="${template_content/\%includes\%/${include_dirs_block}}"
+
+    get_sketches
+    local sketches=( "${RETURN_VALUE[@]}" )
+
+    local sources_block="SET(SOURCE_FILES"$'\n'
+
+    for sketch in "${sketches[@]}"; do
+        get_sketch_file "${sketch}"
+        local sketch_file="${RETURN_VALUE}"
+        sources_block+="  $(replace_prefix "${sketch_file}" "${ROOT_DIR}/" "")"$'\n'
+    done
+    sources_block+=")"
+
+    template_content="${template_content/\%source_files\%/${sources_block}}"
+
+    printf "%s" "${template_content}" > "${cmake_abs}"
+
+
 }
