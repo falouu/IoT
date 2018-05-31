@@ -59,7 +59,13 @@ run() {
         [[ -d "${lib_dir}" ]] || {
            continue
         }
-        include_dirs+=( "$(format_dir "${lib_dir}/src")" )
+
+        local src_lib_dir="${lib_dir}/src"
+        if [[ -d "${src_lib_dir}" ]]; then
+            include_dirs+=( "$(format_dir "${src_lib_dir}")" )
+        else
+            include_dirs+=( "$(format_dir "${lib_dir}")" )
+        fi
     done
 
     local include_dirs_block=""
