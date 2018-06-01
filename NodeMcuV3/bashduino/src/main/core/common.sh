@@ -66,7 +66,7 @@ die(){
   mcaller="$3"
   [[ -z "${message}" ]] && message="Unknown error"
   [[ -z "${error_id}" ]] && error_id="COMMON/UNKNOWN_ERROR"
-  [[ "${mcaller}" ]] || mcaller="$(caller)"
+  [[ "${mcaller}" ]] || mcaller="$(get_caller "$(caller)")"
   containsElement "${error_id}" "${!ERROR_CODES[@]}" || {
     message="die(): Unknown error id: '${error_id}' (original error message: '${message}')"
     error_id="COMMON/UNKNOWN_ERROR_ID"
