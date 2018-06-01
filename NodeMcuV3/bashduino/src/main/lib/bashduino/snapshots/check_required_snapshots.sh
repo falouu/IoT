@@ -16,6 +16,11 @@ required_variables "ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR"
 import "bashduino/indexes/check_required_indexes" as "check_required_indexes"
 import "bashduino/snapshots/get_snapshot_dirs" as "get_snapshot_dirs"
 
+check_required_indexes "${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}"
+success || {
+   return 2
+}
+
 get_snapshot_dirs
 local snapshot_dirs=( "${RETURN_VALUE[@]}" )
 
@@ -26,5 +31,4 @@ for snapshot_dir in "${snapshot_dirs[@]}"; do
 	}
 done
 
-check_required_indexes "${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}"
 return $?
