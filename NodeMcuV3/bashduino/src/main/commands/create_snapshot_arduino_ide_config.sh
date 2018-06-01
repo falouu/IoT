@@ -73,11 +73,17 @@ run() {
         for index in "${required_indexes[@]}"; do
             log "Creating snapshot of index '${index}'..."
             cp "${index}" "${target_dir}" || die_clean
+            local last_index_abs="${target_dir}/${index}"
         done
         popd
+        RETURN_VALUE="${last_index_abs}"
     }
 
-    get_snapshot_dirs
+    log "Creating snapshot of indexes..."
+    archive_indexes
+    local index_abs="${RETURN_VALUE}"
+
+    get_snapshot_dirs "${index_abs}"
     local snapshot_dirs=( "${RETURN_VALUE[@]}" )
 
     for snapshot_dir in "${snapshot_dirs[@]}"; do
@@ -85,8 +91,7 @@ run() {
         archive_package "${snapshot_dir}"
     done
 
-    log "Creating snapshot of indexes..."
-    archive_indexes
+
 
     rm -rf "${arduino_config_tmp_dir}"
 
