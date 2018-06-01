@@ -77,7 +77,8 @@ if [[ "${cache_exists}" != "true" ]]; then
 
     local json_command="bash %depfile% -l < '${required_index_abs}'"
 
-    local json_output="$(call_dependency 'json' "${json_command}")"
+    local json_output
+    json_output="$(call_dependency 'json' "${json_command}")"
     success || {
         die "calling json dependency failed"
     }

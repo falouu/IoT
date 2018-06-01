@@ -616,6 +616,7 @@ call_dependency() {
     [[ -d "${dep_dir}" ]] || die "dependency '${dep_id}' directory not found!" "DEPENDENCIES/NOT_FOUND"
 
     local cmd_resolved="${cmd/\%depfile\%/$dep_file}"
+    local return_code=0
 
     pushd "${dep_dir}"
         eval "${cmd_resolved}"

@@ -15,6 +15,11 @@ run() {
     import "bashduino/sketches/get_sketches" as "get_sketches"
     import "bashduino/sketches/get_sketch_file" as "get_sketch_file"
 
+    run_command "install_packages"
+    success || {
+        die "Installing packages FAILED"
+    }
+
     replace_prefix() {
         require "$1"
         local text="$1"

@@ -1,4 +1,4 @@
-#/usr/bin/env bash
+#!/usr/bin/env bash
 # DO NOT CALL THIS FILE!
 
 # path to arduino command on your system
