@@ -5,7 +5,7 @@
 # Docs:
 #   get snapshot dirs from boards manager json
 # Params:
-#   $1  | path to index file [optional] [default: index file in arduino config dir (CONFIG_DIR)
+#   $1  | custom config dir [optional] [default: arduino config dir (CONFIG_DIR)
 # Returns:
 #   0  | if no error
 # RETURN_VALUE
@@ -20,7 +20,10 @@ import "bashduino/indexes/get_required_indexes" as "get_required_indexes"
 import "bashduino/cache/get_cache_file" as "get_cache_file"
 import "bashduino/snapshots/get_hardware_dir" as "get_hardware_dir"
 
-local custom_index_file="$1"
+local config_dir="${CONFIG_DIR}"
+if [[ "$1" ]]; then
+    config_dir="$1"
+fi
 
 get_cache_file "bashduino/snapshots/get_snapshots_dirs" "snapshots_dirs"
 local cache_file="${RETURN_VALUE}"
@@ -39,11 +42,7 @@ if [[ "${cache_exists}" != "true" ]]; then
     local required_index="${RETURN_VALUE[0]}"
     [[ "${required_index}" ]] || die "Index not found! Did you define BOARDSMANAGER_URL variable?"
 
-    if [[ "${custom_index_file}" ]]; then
-        local required_index_abs="${custom_index_file}"
-    else
-        local required_index_abs="${CONFIG_DIR}/${required_index}"
-    fi
+    local required_index_abs="${config_dir}/${required_index}"
 
     get_search_index_pattern() {
         require "$1"

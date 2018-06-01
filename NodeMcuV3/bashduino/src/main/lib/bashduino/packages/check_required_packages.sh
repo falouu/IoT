@@ -16,7 +16,10 @@ import "bashduino/snapshots/get_snapshot_dirs" as "get_snapshot_dirs"
 local config_dir="${CONFIG_DIR}"
 [[ -z "$1" ]] || config_dir="$1"
 
-get_snapshot_dirs
+get_snapshot_dirs "${config_dir}"
+success || {
+    die "Cannot determine required snapshot dirs? Is index file successfully created in '${config_dir}' directory?"
+}
 local snapshot_dirs=( "${RETURN_VALUE[@]}" )
 
 for snapshot_dir in "${snapshot_dirs[@]}"; do
