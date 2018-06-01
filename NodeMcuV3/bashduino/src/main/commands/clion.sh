@@ -101,5 +101,6 @@ run() {
 
     printf "%s" "${template_content}" > "${cmake_abs}"
 
-
+    log "Launching clion..."
+    ( nohup clion "${ROOT_DIR}" > /tmp/clion.log 2> /tmp/clion_error.log & )
 }
