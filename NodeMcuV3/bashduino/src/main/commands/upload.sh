@@ -5,7 +5,7 @@
 # Output variables:
 #   PARAMS | map | define params for command
 setup() {
-    required_variables "ARDUINO_CMD"
+    required_variables "ARDUINO_CMD" "PORT"
 
     map.set PARAMS[sketch][name] "sketch"
     map.set PARAMS[sketch][description] "sketch to run (run 'ide --sketch-list' command for available sketches)"
@@ -36,5 +36,18 @@ run() {
 
     log "Uploading module '${sketch}'"
 
+    local pids="initial"
+    while [[ "${pids}" ]]; do
+        pids="$(lsof -t "${PORT}" 2>/dev/null)"
+        while read -r; do
+            local pid="${REPLY}"
+            if [[ "${pid}" ]]; then
+                log "Killing process ${pid} which holding access to serial port..."
+                kill "${pid}"
+            fi
+        done <<< "${pids}"
+    done
+
     ${ARDUINO_CMD} --upload "${sketch_file}"
+    printf "\n"
 }

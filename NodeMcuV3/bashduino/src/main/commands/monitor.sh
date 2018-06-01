@@ -26,8 +26,9 @@ run() {
           return 1
        fi
 
-       stty -F "${PORT}" "${SERIAL_BAUD_RATE}"
+       stty -F "${PORT}" "${SERIAL_BAUD_RATE}" icanon
        cat "${PORT}"
+       log "Serial port monitor has ended. Trying again..."
    }
 
    while true; do
