@@ -18,6 +18,7 @@ setup() {
 #   ARGS | map | arguments values
 run() {
     import "bashduino/sketches/get_sketch_file" as "get_sketch_file"
+    import "bashduino/ide/prepare_ide" as "prepare_ide"
 
     local sketch="${DEFAULT_SKETCH}"
     [[ "${ARGS[sketch]}" ]] && {
@@ -28,8 +29,12 @@ run() {
     get_sketch_file "${sketch}"
     local sketch_file="${RETURN_VALUE}"
 
+    prepare_ide
+    success || {
+        die "Preparing Arduino IDE failed"
+    }
 
-
+    log "Uploading module '${sketch}'"
 
     ${ARDUINO_CMD} --upload "${sketch_file}"
 }

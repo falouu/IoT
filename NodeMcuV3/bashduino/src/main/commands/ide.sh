@@ -40,7 +40,7 @@ run() {
         }
 
         log "Running module '${sketch}'"
-        ${ARDUINO_CMD} "${sketch_file}"
+        ( ${ARDUINO_CMD} "${sketch_file}" > arduino.log 2> arduino_error.log & )
     }
 
     ide_command_list_sketches() {

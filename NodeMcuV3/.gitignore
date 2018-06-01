@@ -1,2 +1,4 @@
 config/config.dist.sh
 cmake-build-debug
+arduino.log
+arduino_error.log
