@@ -7,7 +7,16 @@ extern "C" {
   #include "user_interface.h"
 }
 
-
+/* declarations */
+void enableSoftAP();
+bool preHandle();
+String getWifiStatus();
+String getLastWifiStatus();
+String getWifiStatusText(unsigned int connStatus);
+String softAPSSID();
+bool domainRedirectIfRequired();
+bool isWifiConnected();
+bool isAPModeEnabled();
 
 char buffer[1000];
 
@@ -35,7 +44,7 @@ IPAddress netMsk(255, 255, 255, 0);
 //// STATE VARIABLES /////////////////
 
 /** Should I connect to WLAN asap? */
-boolean connect;
+bool connect;
 
 /** Last time I tried to connect to WLAN */
 unsigned long lastConnectTry = 0;
@@ -445,13 +454,10 @@ void handleRoot() {
 
 bool preHandle() {
   logRequest();
-  if (domainRedirectIfRequired()) {
-    return true;
-  }
-  return false;
+  return domainRedirectIfRequired();
 }
 
-boolean domainRedirectIfRequired() {
+bool domainRedirectIfRequired() {
   if (softAPClientsNumber > 0 && !isWifiConnected()) {
     String host = server.hostHeader();
     String cUri = server.uri();
@@ -476,7 +482,7 @@ void handleNotFound() {
   server.send(302);
 }
 
-boolean isWifiConnected() {
+bool isWifiConnected() {
   return status == WL_CONNECTED;
 }
 
@@ -517,6 +523,8 @@ String getWifiStatusText(unsigned int connStatus) {
       return "WL_CONNECTION_LOST";
     case WL_DISCONNECTED:
       return "WL_DISCONNECTED";
+    default:
+      return "UNKNOWN";
   }
 }
 
@@ -532,7 +540,7 @@ void connectWifi() {
   Serial.printf("Connecting to wifi network: '%s'\n", ssid.c_str());
   WiFi.disconnect();
   WiFi.begin(ssid.c_str(), password.c_str());
-  int connStatus = WiFi.waitForConnectResult();
+  uint8_t connStatus = WiFi.waitForConnectResult();
   Serial.print("connection status: ");
   printWifiStatus(connStatus);
 }
@@ -551,7 +559,7 @@ String softAPSSID() {
   return String(ssid);
 }
 
-boolean isAPModeEnabled() {
+bool isAPModeEnabled() {
   //WiFiMode_t getMode()
   WiFiMode_t currentMode = WiFi.getMode();
   return ((currentMode & WIFI_AP) != 0);
