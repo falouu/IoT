@@ -8,6 +8,8 @@ PACKAGE="esp8266"
 ARCH="esp8266"
 VERSION="2.4.1"
 
+SERIAL_BAUD_RATE=115200
+
 BOARDSMANAGER_URL="http://arduino.esp8266.com/stable/package_esp8266com_index.json"
 
 DEFAULT_SKETCH="BlinkBuiltinLed"

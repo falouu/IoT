@@ -2,7 +2,12 @@
 # bash 4.3 required
 #
 # required system commands:
-#   curl, tar, mv, cp
+#   Base:
+#       curl, tar, mv, cp,
+#   'upload' command:
+#       lsof
+#   'monitor' command:
+#       lsof, stty
 #
 # Tested on Arduino 1.8.5
 
@@ -23,6 +28,7 @@ COMMANDS=(
 	"ide"
 	"clion"
 	"upload"
+	"monitor"
 	"install_packages"
 	"install_dependencies"
 	"test"
@@ -35,6 +41,7 @@ COMMAND_HELP["snapshot"]="create snapshot of files required to download"
 COMMAND_HELP["ide"]="run properly configured Arduino IDE"
 COMMAND_HELP["clion"]="run properly configured JetBrains CLion"
 COMMAND_HELP["upload"]="compile and upload sketch do your device"
+COMMAND_HELP["monitor"]="run serial port monitor - show log from your device"
 COMMAND_HELP["install_packages"]="Install required packages"
 COMMAND_HELP["install_dependencies"]="Install required bashduino dependencies"
 COMMAND_HELP["shortlist"]="list all commands"
@@ -47,6 +54,7 @@ COMMAND_FILES["snapshot"]="create_snapshot_arduino_ide_config.sh"
 COMMAND_FILES["ide"]="ide.sh"
 COMMAND_FILES["clion"]="clion.sh"
 COMMAND_FILES["upload"]="upload.sh"
+COMMAND_FILES["monitor"]="monitor.sh"
 COMMAND_FILES["install_packages"]="install_packages.sh"
 COMMAND_FILES["install_dependencies"]="install_dependencies.sh"
 COMMAND_FILES["shortlist"]="shortlist.sh"
