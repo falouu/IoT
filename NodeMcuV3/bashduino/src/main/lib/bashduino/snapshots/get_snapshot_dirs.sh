@@ -44,6 +44,8 @@ if [[ "${cache_exists}" != "true" ]]; then
 
     local required_index_abs="${config_dir}/${required_index}"
 
+    log "Searching for required snapshot packages using index file: '${required_index_abs}'"
+
     get_search_index_pattern() {
         require "$1"
         local field="$1"
