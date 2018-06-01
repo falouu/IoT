@@ -618,13 +618,13 @@ call_dependency() {
     local cmd_resolved="${cmd/\%depfile\%/$dep_file}"
     local return_code=0
 
-    pushd "${dep_dir}"
+    pushd "${dep_dir}" > /dev/null
         eval "${cmd_resolved}"
         local return_code="$?"
         [[ "${return_code}" == "${ERROR_CODES["SYSTEM/COMMAND_NOT_FOUND"]}" ]] && {
             errcho "Cannot execute dependency command: '${cmd_resolved}' - command not found"
         }
-    popd
+    popd > /dev/null
 
     return ${return_code}
 }

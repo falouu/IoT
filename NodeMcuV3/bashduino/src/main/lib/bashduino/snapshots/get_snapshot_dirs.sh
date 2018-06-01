@@ -175,7 +175,7 @@ if [[ "${cache_exists}" != "true" ]]; then
     done
 
     local declare_snapshots_line="$(declare -p SNAPSHOT_DIRS)"
-    local declare_snapshots_line_pattern="^declare -a SNAPSHOT_DIRS='(.+)'$"
+    local declare_snapshots_line_pattern="^declare -a SNAPSHOT_DIRS='?(.+)'?$"
 
     if [[ "${declare_snapshots_line}" =~ $declare_snapshots_line_pattern ]]; then
         local definition="${BASH_REMATCH[1]}"

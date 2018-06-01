@@ -36,10 +36,9 @@ run() {
 
     check_required_packages "${arduino_config_tmp_dir}" || die_clean
 
-    check_snapshot_dir() {
+    assert_snapshot_dir() {
         [[ -d "${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}" ]] \
-          || die "Arduino packages snapshot dir (${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}) doesn't exists!" \
-                 "SCRIPTS/CREATE_SNAPSHOT_ARDUINO_IDE_CONFIG/MISSING_SNAPSHOTS_DIR"
+          || mkdir "${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}"
     }
 
     archive_package() {
@@ -47,7 +46,7 @@ run() {
         require "$1"
         package_dir="$1"
 
-        check_snapshot_dir
+        assert_snapshot_dir
 
         target_dir="${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}/${package_dir}"
         mkdir -p "${target_dir}" || die_clean
@@ -63,7 +62,7 @@ run() {
     }
 
     archive_indexes() {
-        check_snapshot_dir
+        assert_snapshot_dir
         local target_dir="${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}"
 
         get_required_indexes
