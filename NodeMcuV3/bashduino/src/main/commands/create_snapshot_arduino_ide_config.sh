@@ -92,18 +92,4 @@ run() {
     rm -rf "${arduino_config_tmp_dir}"
 
     log "All snapshots created in directory '${ARDUINO_IDE_PACKAGES_SNAPSHOT_DIR}'"
-
-    #255
-
-    #--install-boards package name:platform architecture[:version]
-
-    # --install-boards esp8266:esp8266:2.4.1
-
-
-    # boardsmanager.additional.urls=http://arduino.esp8266.com/stable/package_esp8266com_index.json
-
-
-    # --pref name=value
-
-    # --pref boardsmanager.additional.urls=http://arduino.esp8266.com/stable/package_esp8266com_index.json
 }

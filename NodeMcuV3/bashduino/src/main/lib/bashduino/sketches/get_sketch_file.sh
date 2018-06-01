@@ -15,10 +15,10 @@
 require "$1"
 local module="$1"
 
-local src_dir="${ROOT_DIR}/src"
+local src_dir="${ROOT_DIR}/src/sketches"
 
 [[ -d "${src_dir}" ]] || {
-    die "src/ directory not found in your project!" "COMMON/FILE_NOT_FOUND"
+    die "src/sketches directory not found in your project!" "COMMON/FILE_NOT_FOUND"
 }
 
 local src_module_dir="${src_dir}/${module}"

@@ -12,7 +12,7 @@
 #   exit only on unexpected error
 #
 
-local src_dir="${ROOT_DIR}/src"
+local src_dir="${ROOT_DIR}/src/sketches"
 
 local sketches=()
 pushd "${src_dir}" > /dev/null

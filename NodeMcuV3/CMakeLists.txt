@@ -33,9 +33,9 @@ include_directories($ENV{HOME}/.arduino15/packages/esp8266/hardware/esp8266/2.4.
 include_directories($ENV{HOME}/.arduino15/packages/esp8266/hardware/esp8266/2.4.1/tools/sdk/include/)
 
 SET(SOURCE_FILES
-  src/BlinkBuiltinLed/BlinkBuiltinLed.ino
-  src/BlinkLedOnRequest/BlinkLedOnRequest.ino
-  src/CaptivePortal/CaptivePortal.ino
+  src/sketches/BlinkBuiltinLed/BlinkBuiltinLed.ino
+  src/sketches/BlinkLedOnRequest/BlinkLedOnRequest.ino
+  src/sketches/CaptivePortal/CaptivePortal.ino
 )
 
 add_executable(NodeMcuV3 ${SOURCE_FILES})
