@@ -5,10 +5,10 @@
 # Output variables:
 #   PARAMS | map | define params for command
 setup() {
-    required_variables "ARDUINO_CMD" "PORT"
+    required_variables "ARDUINO_CMD"
 
     map.set PARAMS[sketch][name] "sketch"
-    map.set PARAMS[sketch][description] "sketch to upload (run 'ide --sketch-list' command for available sketches)"
+    map.set PARAMS[sketch][description] "sketch to compile (run 'ide --sketch-list' command for available sketches)"
     map.set PARAMS[sketch][defaultDescription] "default sketch, defined by DEFAULT_SKETCH variable in project config"
     map.set PARAMS[sketch][required] "false"
     map.set PARAMS[sketch][valuePlaceholder] "sketch module name"
@@ -18,7 +18,7 @@ setup() {
 #   ARGS | map | arguments values
 run() {
     import "bashduino/sketches/get_sketch_file" as "get_sketch_file"
-    import "bashduino/ide/prepare_ide" as "prepare_ide"
+    import "bashduino/ide/configure_ide" as "configure_ide"
 
     local sketch="${DEFAULT_SKETCH}"
     [[ "${ARGS[sketch]}" ]] && {
@@ -29,25 +29,13 @@ run() {
     get_sketch_file "${sketch}"
     local sketch_file="${RETURN_VALUE}"
 
-    prepare_ide
+    configure_ide
     success || {
-        die "Preparing Arduino IDE failed"
+        die "Configuring Arduino IDE failed"
     }
 
-    log "Uploading module '${sketch}'"
+    log "Compiling module '${sketch}'"
 
-    local pids="initial"
-    while [[ "${pids}" ]]; do
-        pids="$(lsof -t "${PORT}" 2>/dev/null)"
-        while read -r; do
-            local pid="${REPLY}"
-            if [[ "${pid}" ]]; then
-                log "Killing process ${pid} which holding access to serial port..."
-                kill "${pid}"
-            fi
-        done <<< "${pids}"
-    done
-
-    ${ARDUINO_CMD} --upload "${sketch_file}"
+    ${ARDUINO_CMD} --verify "${sketch_file}"
     printf "\n"
 }
