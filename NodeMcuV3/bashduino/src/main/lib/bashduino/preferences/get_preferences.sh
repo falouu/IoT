@@ -28,8 +28,6 @@ while read -r line; do
     local pref_name="${BASH_REMATCH[1]}"
     local pref_value="${BASH_REMATCH[2]}"
 
-    #debug "pref_name='${pref_name}'; pref_value='${pref_value}'"
-
     output[${pref_name}]="${pref_value}"
 
 done < "${pref_file}"

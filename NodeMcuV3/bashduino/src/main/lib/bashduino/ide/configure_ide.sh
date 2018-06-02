@@ -8,7 +8,7 @@
 #   0
 # Exit policy:
 #   exit with error if preparing failed
-required_variables "PORT" "BOARDSMANAGER_URL"
+required_variables "ROOT_DIR" "PORT" "BOARDSMANAGER_URL"
 
 import "bashduino/preferences/get_preferences" as "get_preferences"
 import "bashduino/preferences/apply_preferences" as "apply_preferences"
@@ -24,6 +24,7 @@ get_preferences prefs
 
 prefs["boardsmanager.additional.urls"]="${BOARDSMANAGER_URL}"
 prefs["serial.port"]="${PORT}"
+prefs["sketchbook.path"]="${ROOT_DIR}/src"
 
 apply_preferences prefs
 unset prefs

@@ -14,7 +14,7 @@ require "$1"
 local -n apply_preferences_prefs="$1"
 
 local target_file="${CONFIG_DIR}/preferences.txt"
-local name_pattern="[a-zA-Z][a-zA-Z0-9_]*"
+local name_pattern="[a-zA-Z][a-zA-Z0-9_.]*"
 local pref_line_pattern="^[[:space:]]*(${name_pattern})=(.+)$"
 
 [[ -f "${target_file}" ]] || {
