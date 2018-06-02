@@ -4,6 +4,8 @@
 
 # Docs:
 #   get sketch file name by sketch module name
+# Params:
+#   $1  | sketch module name
 # Returns:
 #   0
 # RETURN_VALUE:
@@ -11,6 +13,7 @@
 # Exit policy:
 #   exit only on unexpected error
 #
+required_variables "ROOT_DIR"
 
 require "$1"
 local module="$1"
@@ -23,7 +26,7 @@ local src_dir="${ROOT_DIR}/src/sketches"
 
 local src_module_dir="${src_dir}/${module}"
 
-[[ -d "${src_dir}" ]] || {
+[[ -d "${src_module_dir}" ]] || {
     die "module '${module}' not found in your src dir!" "COMMON/FILE_NOT_FOUND"
 }
 

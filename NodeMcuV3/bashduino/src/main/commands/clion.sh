@@ -14,6 +14,8 @@ run() {
     import "bashduino/snapshots/get_hardware_dir" as "get_hardware_dir"
     import "bashduino/sketches/get_sketches" as "get_sketches"
     import "bashduino/sketches/get_sketch_file" as "get_sketch_file"
+    import "bashduino/libraries/get_src_libraries" as "get_src_libraries"
+    import "bashduino/libraries/get_src_library_files" as "get_src_library_files"
 
     run_command "install_packages"
     success || {
@@ -88,6 +90,9 @@ run() {
     get_sketches
     local sketches=( "${RETURN_VALUE[@]}" )
 
+    get_src_libraries
+    local libraries=( "${RETURN_VALUE[@]}" )
+
     local sources_block="SET(SOURCE_FILES"$'\n'
 
     for sketch in "${sketches[@]}"; do
@@ -95,6 +100,15 @@ run() {
         local sketch_file="${RETURN_VALUE}"
         sources_block+="  $(replace_prefix "${sketch_file}" "${ROOT_DIR}/" "")"$'\n'
     done
+
+    for library in "${libraries[@]}"; do
+        get_src_library_files "${library}"
+        local lib_files=( "${RETURN_VALUE[@]}" )
+        for lib_file in "${lib_files[@]}"; do
+            sources_block+="  $(replace_prefix "${lib_file}" "${ROOT_DIR}/" "")"$'\n'
+        done
+    done
+
     sources_block+=")"
 
     template_content="${template_content/\%source_files\%/${sources_block}}"

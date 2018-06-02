@@ -1,0 +1,10 @@
+#ifndef NODEMCUV3_CAPTIVEPORTAL_H
+#define NODEMCUV3_CAPTIVEPORTAL_H
+
+
+class CaptivePortal {
+
+};
+
+
+#endif //NODEMCUV3_CAPTIVEPORTAL_H

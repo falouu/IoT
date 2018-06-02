@@ -11,6 +11,7 @@
 # Exit policy:
 #   exit only on unexpected error
 #
+required_variables "ROOT_DIR"
 
 local src_dir="${ROOT_DIR}/src/sketches"
 
