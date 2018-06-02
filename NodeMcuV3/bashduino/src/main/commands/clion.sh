@@ -75,6 +75,13 @@ run() {
         fi
     done
 
+    get_src_libraries
+    local src_libraries=( "${RETURN_VALUE[@]}" )
+
+    for library in "${src_libraries[@]}"; do
+        include_dirs+=( "src/libraries/${library}/src" )
+    done
+
     local include_dirs_block=""
 
     for include_dir in "${include_dirs[@]}"; do
@@ -90,9 +97,6 @@ run() {
     get_sketches
     local sketches=( "${RETURN_VALUE[@]}" )
 
-    get_src_libraries
-    local libraries=( "${RETURN_VALUE[@]}" )
-
     local sources_block="SET(SOURCE_FILES"$'\n'
 
     for sketch in "${sketches[@]}"; do
@@ -101,7 +105,7 @@ run() {
         sources_block+="  $(replace_prefix "${sketch_file}" "${ROOT_DIR}/" "")"$'\n'
     done
 
-    for library in "${libraries[@]}"; do
+    for library in "${src_libraries[@]}"; do
         get_src_library_files "${library}"
         local lib_files=( "${RETURN_VALUE[@]}" )
         for lib_file in "${lib_files[@]}"; do

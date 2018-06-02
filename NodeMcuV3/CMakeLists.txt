@@ -30,6 +30,7 @@ include_directories($ENV{HOME}/.arduino15/packages/esp8266/hardware/esp8266/2.4.
 include_directories($ENV{HOME}/.arduino15/packages/esp8266/hardware/esp8266/2.4.1/libraries/TFT_Touch_Shield_V2)
 include_directories($ENV{HOME}/.arduino15/packages/esp8266/hardware/esp8266/2.4.1/libraries/Ticker)
 include_directories($ENV{HOME}/.arduino15/packages/esp8266/hardware/esp8266/2.4.1/libraries/Wire)
+include_directories(src/libraries/CaptivePortal/src)
 include_directories($ENV{HOME}/.arduino15/packages/esp8266/hardware/esp8266/2.4.1/tools/sdk/include/)
 
 SET(SOURCE_FILES
