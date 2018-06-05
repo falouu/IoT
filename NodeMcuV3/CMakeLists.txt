@@ -39,6 +39,7 @@ SET(SOURCE_FILES
   src/sketches/CaptivePortal/CaptivePortal.ino
   src/libraries/CaptivePortal/src/CaptivePortal.h
   src/libraries/CaptivePortal/src/CaptivePortal.cpp
+  src/libraries/CaptivePortal/src/Resources.h
 )
 
 add_executable(NodeMcuV3 ${SOURCE_FILES})
