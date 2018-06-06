@@ -617,6 +617,7 @@ void updateState() {
 
 
 void setup() {
+  captivePortal.setup();
   delay(1000);
   Serial.begin(115200);
   while (!Serial) {
@@ -659,6 +660,7 @@ void setup() {
 }
 
 void loop() {
+  captivePortal.handle();
   updateState();
   
   // Do work:
