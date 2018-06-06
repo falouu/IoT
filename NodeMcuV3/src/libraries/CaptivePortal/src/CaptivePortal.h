@@ -72,6 +72,8 @@ private:
 
   Resources resources;
   DNSServer dnsServer;
+  // Web server
+  ESP8266WebServer server { 80 };
 };
 
 #endif //NODEMCUV3_CAPTIVEPORTAL_H
