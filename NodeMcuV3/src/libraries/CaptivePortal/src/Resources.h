@@ -76,4 +76,11 @@ public:
     "</head>"
     "<body>"
   };
+
+  const String footer {
+      "<hr />"
+      "<p class=\"centered\"><a href=\"/\">Main page</a></p>"
+    "</body>"
+    "</html>"
+  };
 };
