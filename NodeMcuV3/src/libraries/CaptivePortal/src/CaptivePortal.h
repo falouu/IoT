@@ -2,7 +2,9 @@
 #define NODEMCUV3_CAPTIVEPORTAL_H
 
 #include <Arduino.h>
+#include <DNSServer.h>
 #include <ESP8266WebServer.h>
+#include "Resources.h"
 
 class CaptivePortal {
 public:
@@ -65,6 +67,11 @@ private:
   unsigned long lastConnectTry = 0;
 
   //// END OF STATE VARIABLES ///////////////////////
+
+  char buffer[1000];
+
+  Resources resources;
+  DNSServer dnsServer;
 };
 
 #endif //NODEMCUV3_CAPTIVEPORTAL_H
