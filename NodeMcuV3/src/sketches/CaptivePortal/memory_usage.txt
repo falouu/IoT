@@ -158,3 +158,13 @@ Zmienne globalne używają 45500 bajtów (55%) pamięci dynamicznej, pozostawiaj
 +16 B RAM
 
 // next const string in Resources.h (not used) - concatenation of other strings
+
+2018-06-06
+Archiving built core (caching) in: /tmp/arduino_cache_284187/core/core_esp8266_esp8266_nodemcuv2_CpuFrequency_80,FlashSize_4M1M,LwIPVariant_v2mss536,Debug_Disabled,DebugLevel_OOM,FlashErase_none,UploadSpeed_115200_5a675c41e8fdde90af01f81b78a42794.a
+Szkic używa 301168 bajtów (28%) pamięci programu. Maksimum to 1044464 bajtów.
+Zmienne globalne używają 45516 bajtów (55%) pamięci dynamicznej, pozostawiając 36404 bajtów dla zmiennych lokalnych. Maksimum to 81920 bajtów.
+
++48 B ROM
++16 B ROM
+
+// next const string in Resources.h (not used)
