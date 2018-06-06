@@ -22,6 +22,18 @@ private:
   void connectWifi();
   inline void updateLastWifiStatus(unsigned int connStatus);
   inline void printWifiStatus(unsigned int connStatus);
+
+  void handleRoot();
+  void handleConnect();
+  void handleDisconnect();
+  void handleConnecting();
+  void handleStatus();
+  void handleNotFound();
+  bool domainRedirectIfRequired();
+
+  void logRequest();
+  bool preHandle();
+  void updateState();
 };
 
 #endif //NODEMCUV3_CAPTIVEPORTAL_H
