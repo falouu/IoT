@@ -292,4 +292,6 @@ public:
       "fetchStatusLoop();"
     "</script>"
   };
+
+  const String connectingHtml { header + connectingContent + footer };
 };
