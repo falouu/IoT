@@ -49,6 +49,22 @@ private:
   const char *softAP_password = "cm52gn3k";
 
   //// END OF CONSTANTS /////////////////
+
+
+  //// STATE VARIABLES /////////////////
+  /** Should I connect to WLAN asap? */
+  bool connect = false;
+  /* Don't set this wifi credentials. They are configurated at runtime and stored on EEPROM */
+  String ssid = "";
+  String password = "";
+  /** Current WLAN status */
+  unsigned int status = WL_IDLE_STATUS;
+  unsigned int lastConnectionStatus = WL_IDLE_STATUS;
+  unsigned int softAPClientsNumber = 0;
+  /** Last time I tried to connect to WLAN */
+  unsigned long lastConnectTry = 0;
+
+  //// END OF STATE VARIABLES ///////////////////////
 };
 
 #endif //NODEMCUV3_CAPTIVEPORTAL_H
