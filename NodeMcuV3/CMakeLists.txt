@@ -38,6 +38,7 @@ SET(SOURCE_FILES
   src/sketches/BlinkLedOnRequest/BlinkLedOnRequest.ino
   src/sketches/CaptivePortal/CaptivePortal.ino
   src/libraries/CaptivePortal/src/CaptivePortal.h
+  src/libraries/CaptivePortal/src/Resources.h
   src/libraries/CaptivePortal/src/CaptivePortal.cpp
 )
 
