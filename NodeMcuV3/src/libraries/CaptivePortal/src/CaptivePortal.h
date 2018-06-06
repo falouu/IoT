@@ -42,8 +42,8 @@ private:
   // DNS server
   const byte DNS_PORT = 53;
   /* Soft AP network parameters */
-  const IPAddress apIP { IPAddress(192, 168, 1, 1) };
-  const IPAddress netMsk { IPAddress(255, 255, 255, 0) };
+  const IPAddress apIP { 192, 168, 1, 1 };
+  const IPAddress netMsk { 255, 255, 255, 0 };
   const String myHostname = "esp8266";
 
   /* Set these to your desired softAP credentials. They are not configurable at runtime */
