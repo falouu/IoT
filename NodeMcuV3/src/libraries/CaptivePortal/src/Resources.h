@@ -207,4 +207,6 @@ public:
     "fetchStatusLoop()"
   "</script>"
   };
+
+  const String rootHtml { header + rootContent + footer };
 };
