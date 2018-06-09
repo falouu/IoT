@@ -185,7 +185,10 @@ Archiving built core (caching) in: /tmp/arduino_cache_89255/core/core_esp8266_es
 Szkic używa 301640 bajtów (28%) pamięci programu. Maksimum to 1044464 bajtów.
 Zmienne globalne używają 44068 bajtów (53%) pamięci dynamicznej, pozostawiając 37852 bajtów dla zmiennych lokalnych. Maksimum to 81920 bajtów.
 
+Uploading 305792 bytes from /tmp/arduino_build_485718/CaptivePortal.ino.bin to flash at 0x00000000
+
 +408  B ROM
 -1464 B RAM
 
 // CaptivePortal extracted to library, compiling
+// UPDATE: and uploading correctly, and working correctly!
