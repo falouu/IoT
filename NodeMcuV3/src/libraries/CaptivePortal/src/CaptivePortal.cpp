@@ -13,13 +13,7 @@ void CaptivePortal::setup() {
     ; // wait for serial port to connect. Needed for native USB port only
   }
   Serial.println();
-  Serial.print("Configuring access point... ");
-
-  enableSoftAP();
-  delay(500); // Without delay I've seen the IP address blank
-  Serial.print("AP IP address: ");
-  Serial.println(WiFi.softAPIP());
-
+  setupSoftAP();
   /* Setup the DNS server redirecting all the domains to the apIP */
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(DNS_PORT, "*", apIP);
@@ -46,6 +40,20 @@ void CaptivePortal::setup() {
   }
 
   connect = ssid.length() > 0; // Request WLAN connect if there is a SSID
+}
+
+void CaptivePortal::setupSoftAP() {
+  String ssid = WiFi.SSID();
+  if (ssid.length() > 0) {
+    Serial.printf("Device is configured to connect to network '%s'. Access point will NOT be enabled.\n", ssid.c_str());
+    WiFi.softAPdisconnect(true);
+    return;
+  }
+  Serial.println("Configuring access point... ");
+  enableSoftAP();
+  delay(500); // Without delay I've seen the IP address blank
+  Serial.print("AP IP address: ");
+  Serial.println(WiFi.softAPIP());
 }
 
 void CaptivePortal::enableSoftAP() {

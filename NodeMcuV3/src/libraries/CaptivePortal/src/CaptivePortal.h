@@ -12,6 +12,7 @@ public:
   void handle();
 
 private:
+  void setupSoftAP();
   void enableSoftAP();
   void handleDisableAP();
   void handleEnableAP();

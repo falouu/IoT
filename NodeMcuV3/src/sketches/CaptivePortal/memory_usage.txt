@@ -192,3 +192,11 @@ Uploading 305792 bytes from /tmp/arduino_build_485718/CaptivePortal.ino.bin to f
 
 // CaptivePortal extracted to library, compiling
 // UPDATE: and uploading correctly, and working correctly!
+
+2018-06-10
+Archiving built core (caching) in: /tmp/arduino_cache_271067/core/core_esp8266_esp8266_nodemcuv2_CpuFrequency_80,FlashSize_4M1M,LwIPVariant_v2mss536,Debug_Disabled,DebugLevel_OOM,FlashErase_none,UploadSpeed_115200_5a675c41e8fdde90af01f81b78a42794.a
+Szkic używa 301804 bajtów (28%) pamięci programu. Maksimum to 1044464 bajtów.
+Zmienne globalne używają 44144 bajtów (53%) pamięci dynamicznej, pozostawiając 37776 bajtów dla zmiennych lokalnych. Maksimum to 81920 bajtów.
+Wgrywanie...
+Uploading 305952 bytes from /tmp/arduino_build_979013/CaptivePortal.ino.bin to flash at 0x00000000
+
