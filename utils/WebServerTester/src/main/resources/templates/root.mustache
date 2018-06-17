@@ -1,6 +1,8 @@
 {{> header }}
 <h1>Welcome!</h1>
 <h2>WiFi setup</h2>
+<div id="message" class="alert alert-success" style="display: none"></div>
+<div id="fetch-status-error" class="error alert" style="display: none"></div>
 <table class="status-table">
   <tr><td>Current status: </td><td id="current-wifi-status"></td></tr>
   <tr class="wifi-details hidden"><td>SSID: </td><td id="wifi-ssid"></td></tr>
@@ -115,7 +117,23 @@
     softAPClientsDom.innerText = this.softAPClientsNumber;
   };
 
+  var getParameterByName = function(name) {
+    var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+  };
+
+  var showMessage = function() {
+    var message = getParameterByName('message');
+    if (message) {
+      var container = document.getElementById('message');
+      container.innerText = message;
+      container.style.display = null;
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  };
+
   var fetchStatusLoop = function() {
+    setLoading();
     fetchStatus()
         .then(function(status) {
           this.wifiStatus = status.wifi.status;
@@ -127,13 +145,16 @@
           this.softAPssid = status.softAP.ssid;
           this.softAPIP = status.softAP.ip;
           this.softAPClientsNumber = status.softAP.clients;
-
           updateDocument();
+        })
+        .catch(function(err) {
+        })
+        .then(function() {
           setTimeout(fetchStatusLoop, 5000);
         });
   };
 
-  setLoading();
+  showMessage();
   fetchStatusLoop()
 
 </script>

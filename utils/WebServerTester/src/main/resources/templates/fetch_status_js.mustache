@@ -1,9 +1,15 @@
-var error = function(message, err) {
+var fetchStatusError = function(message, err) {
   console.log(message, err);
-  var container = document.getElementById('error');
+  var container = document.getElementById('fetch-status-error');
 
   container.innerText = message + ". Caused by: " + err;
   container.style.display = null
+};
+
+var fetchStatusClearError = function() {
+    var container = document.getElementById('fetch-status-error');
+    container.innerText = '';
+    container.style.display = 'none'
 };
 
 var fetchStatus = function() {
@@ -14,11 +20,12 @@ var fetchStatus = function() {
         if(!response.ok) {
           throw new Error('Invalid status code: ' + response.status)
         }
+        fetchStatusClearError();
         return response.json();
       })
       .catch(function(err) {
         console.log(err);
-        error("Fetch template error!", err);
+        fetchStatusError("Fetch status failed!", err);
         throw err;
       });
 };

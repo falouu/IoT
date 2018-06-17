@@ -1,5 +1,5 @@
 {{> header }}
-<div id="error" class="error" style="display: none"></div>
+<div id="fetch-status-error" class="alert error" style="display: none"></div>
 <h1 id="header-status">Loading...</h1>
 <p>SSID: <span class="data-ssid"></span></p>
 <p id="counter-line"><span id="counter"></span> seconds...</p>
@@ -34,7 +34,10 @@
           document.getElementById('wifi-status').innerText = getStatusText(this.wifiStatus, this.lastWifiStatus);
 
           [].forEach.call(document.getElementsByClassName('data-ssid'), function(el) { el.innerText = ssid; });
-
+        })
+        .catch(function(err) {
+        })
+        .then(function() {
           if (this.wifiStatus !== 'WL_CONNECTED' && !timeout) {
             setTimeout(fetchStatusLoop, 2000);
           }

@@ -63,9 +63,8 @@ void CaptivePortal::enableSoftAP() {
 
 void CaptivePortal::handleDisableAP() {
   logRequest();
-  WiFi.softAPdisconnect(true);
-
-  server.sendHeader("Location", "/");
+  scheduleDisableAP(5000);
+  server.sendHeader("Location", "/?message=Soft%20AP%20will%20be%20disabled%20any%20second%20soon!");
   server.send(303);
 }
 
@@ -106,12 +105,8 @@ void CaptivePortal::handleConnect() {
 
 void CaptivePortal::handleDisconnect() {
   logRequest();
-  WiFi.disconnect();
-  ssid = "";
-  password = "";
-  lastConnectionStatus = WL_IDLE_STATUS;
-
-  server.sendHeader("Location", "/");
+  scheduleDisconnect();
+  server.sendHeader("Location", "/?message=You%20will%20be%20disconnected%20from%20wifi%20any%20second%20soon!");
   server.send(303);
 }
 
@@ -284,9 +279,9 @@ void CaptivePortal::updateState() {
         Serial.print("IP address: ");
         Serial.println(WiFi.localIP());
 
+        scheduleDisableAP();
+
         // TODO: Setup MDNS responder
-      } else if (s == WL_NO_SSID_AVAIL) {
-        WiFi.disconnect();
       }
     }
   }
@@ -300,6 +295,8 @@ void CaptivePortal::updateState() {
     }
     softAPClientsNumber = currentSoftAPClients;
   }
+
+  handleScheduledTasks();
 }
 
 void CaptivePortal::connectWifi() {
@@ -327,4 +324,39 @@ void CaptivePortal::updateLastWifiStatus(unsigned int connStatus) {
 
 void CaptivePortal::printWifiStatus(unsigned int connStatus) {
   Serial.println(getWifiStatusText(connStatus));
+}
+
+void CaptivePortal::scheduleDisableAP(int delay) {
+  unsigned long now = millis();
+  disableAPScheduledTime = now + delay;
+}
+
+void CaptivePortal::scheduleDisconnect() {
+  unsigned long now = millis();
+  disconnectScheduledTime = now + 5000;
+}
+
+void CaptivePortal::handleScheduledTasks() {
+  if (disableAPScheduledTime != 0) {
+    unsigned long now = millis();
+    if (now >= disableAPScheduledTime) {
+      WiFi.softAPdisconnect(true);
+      disableAPScheduledTime = 0;
+    }
+  }
+
+  if (disconnectScheduledTime != 0) {
+    unsigned long now = millis();
+    if (now >= disconnectScheduledTime) {
+      disconnectWifi();
+      disconnectScheduledTime = 0;
+    }
+  }
+}
+
+void CaptivePortal::disconnectWifi() {
+  WiFi.disconnect();
+  ssid = "";
+  password = "";
+  lastConnectionStatus = WL_IDLE_STATUS;
 }

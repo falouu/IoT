@@ -16,6 +16,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.server.HandlerFunction;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.util.UriBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
@@ -249,7 +251,13 @@ public class NodeMcuTestsApplication {
                 .doOnNext(r -> this.state.ssid = "")
                 .doOnNext(r -> this.state.localIP = "0.0.0.0")
                 .doOnNext(r -> this.state.lastConnectionStatus = "WL_IDLE_STATUS")
-                .then(ServerResponse.seeOther(URI.create("/")).build());
+                .then(ServerResponse.seeOther(
+                    UriComponentsBuilder.fromPath("/")
+                        .queryParam("message", "You will be disconnected from wifi any second soon!")
+                        .build().toUri()
+                    )
+                    .build()
+                );
 
 	private HandlerFunction<ServerResponse> disableAPHandler =
         request ->
@@ -258,7 +266,13 @@ public class NodeMcuTestsApplication {
                 .doOnNext(r -> this.state.softAPClients = 0)
                 .doOnNext(r -> this.state.softAPIP = "0.0.0.0")
                 .doOnNext(r -> this.state.softAPssid = "")
-                .then(ServerResponse.seeOther(URI.create("/")).build());
+                .then(ServerResponse.seeOther(
+                    UriComponentsBuilder.fromPath("/")
+                        .queryParam("message", "Soft AP will be disabled any second soon!")
+                        .build().toUri()
+                    )
+                        .build()
+                );
 
 	private HandlerFunction<ServerResponse> enableAPHandler =
         request ->

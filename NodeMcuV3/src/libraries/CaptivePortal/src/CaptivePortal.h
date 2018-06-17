@@ -24,6 +24,7 @@ private:
   const String getLastWifiStatus();
   inline bool isWifiConnected();
   void connectWifi();
+  void disconnectWifi();
   inline void updateLastWifiStatus(unsigned int connStatus);
   inline void printWifiStatus(unsigned int connStatus);
 
@@ -38,6 +39,10 @@ private:
   void logRequest();
   bool preHandle();
   void updateState();
+
+  void scheduleDisableAP(int = 60000);
+  void scheduleDisconnect();
+  void handleScheduledTasks();
 
   //// CONSTANTS /////////////////
   // DNS server
@@ -66,6 +71,8 @@ private:
   unsigned int softAPClientsNumber = 0;
   /** Last time I tried to connect to WLAN */
   unsigned long lastConnectTry = 0;
+  unsigned long disableAPScheduledTime = 0;
+  unsigned long disconnectScheduledTime = 0;
 
   //// END OF STATE VARIABLES ///////////////////////
 
