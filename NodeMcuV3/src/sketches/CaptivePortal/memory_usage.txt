@@ -207,3 +207,15 @@ Zmienne globalne używają 45520 bajtów (55%) pamięci dynamicznej, pozostawiaj
 Wgrywanie...
 Uploading 307488 bytes from /tmp/arduino_build_269966/CaptivePortal.ino.bin to flash at 0x00000000
 
+
+2018-06-17
+Archiving built core (caching) in: /tmp/arduino_cache_160433/core/core_esp8266_esp8266_nodemcuv2_CpuFrequency_80,FlashSize_4M1M,LwIPVariant_v2mss536,Debug_Disabled,DebugLevel_None____,FlashErase_none,UploadSpeed_115200_5a675c41e8fdde90af01f81b78a42794.a
+Szkic używa 300924 bajtów (28%) pamięci programu. Maksimum to 1044464 bajtów.
+Zmienne globalne używają 45520 bajtów (55%) pamięci dynamicznej, pozostawiając 36400 bajtów dla zmiennych lokalnych. Maksimum to 81920 bajtów.
+Wgrywanie...
+Uploading 305072 bytes from /tmp/arduino_build_335984/CaptivePortal.ino.bin to flash at 0x00000000
+
+-2424 B ROM
++0    B RAM
+
+// Decrease of size thanks to disabling debuging (DebugLevel_None____)

@@ -47,6 +47,11 @@
 * C++ code is compiled using `c++11` standard (see `esp8266/hardware/esp8266/2.4.1/platform.txt` file and search 
   for `compiler.cpp.flags` property, you will see `-std=c++11` option) 
 
+### Preferences
+
+* `custom_FlashErase=nodemcuv2_none` - you can set this to other values (TODO: check what values), to erase WiFi 
+   credentials on the next upload
+
 ### Sources
 
 Sources for API are defined in: https://github.com/esp8266/Arduino/blob/master/cores/esp8266/ 

@@ -4,7 +4,8 @@
 
 * it is using `.idea` directory
 
-
-## TODO
+## DONE
 
 * generate `CMakeLists.txt` with content
+
+## TODO
